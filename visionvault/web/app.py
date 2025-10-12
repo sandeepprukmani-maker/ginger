@@ -1,0 +1,1560 @@
+from gevent import monkey
+monkey.patch_all()
+
+import os
+import json
+import sqlite3
+import uuid
+import time
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, send_from_directory, Response
+from flask_socketio import SocketIO, emit
+from flask_cors import CORS
+from openai import OpenAI
+from visionvault.services.executor import ServerExecutor
+from visionvault.services.healing_executor import HealingExecutor
+from visionvault.services.code_validator import CodeValidator
+from visionvault.core.models import Database, LearnedTask, TaskExecution
+from visionvault.services.vector_store import SemanticSearch
+import base64
+import asyncio
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
+app.config['UPLOAD_FOLDER'] = 'data/uploads'
+app.config['DATABASE_PATH'] = 'data/automation.db'
+CORS(app)
+socketio = SocketIO(
+    app, 
+    async_mode='gevent', 
+    cors_allowed_origins="*",
+    ping_timeout=60,           # 60 seconds before considering connection dead
+    ping_interval=25,          # Send ping every 25 seconds to keep connection alive
+    max_http_buffer_size=10**8,  # 100MB buffer for large payloads
+    engineio_logger=False,     # Reduce logging overhead
+    logger=False
+)
+
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'screenshots'), exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'logs'), exist_ok=True)
+
+openai_api_key = os.environ.get('OPENAI_API_KEY')
+gemini_api_key = os.environ.get('GEMINI_API_KEY')
+
+if openai_api_key:
+    client = OpenAI(api_key=openai_api_key)
+    print("✅ OpenAI client initialized for code generation")
+else:
+    client = None
+    print("WARNING: OPENAI_API_KEY is not set. AI code generation will not be available.")
+
+if gemini_api_key:
+    try:
+        semantic_search = SemanticSearch(api_key=gemini_api_key)
+        print("✅ Semantic search service initialized with Gemini embeddings")
+    except Exception as e:
+        semantic_search = None
+        print(f"⚠️ Failed to initialize semantic search: {e}")
+else:
+    semantic_search = None
+    print("WARNING: GEMINI_API_KEY is not set. Semantic search will not be available.")
+
+connected_agents = {}
+active_healing_executors = {}
+
+# Initialize database with new tables
+db = Database()
+print("✅ Database initialized with persistent learning tables")
+
+
+def generate_playwright_code(natural_language_command, browser='chromium'):
+    if not client:
+        raise Exception("OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.")
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": """You are an expert at converting natural language commands into Playwright Python code.
+Generate complete, executable Playwright code that:
+1. Uses async/await syntax
+2. Includes proper browser launch with the specified browser
+3. Has error handling with proper cleanup
+4. Returns a dict with 'success', 'logs', and 'screenshot' keys
+5. ALWAYS takes screenshot BEFORE closing browser (CRITICAL)
+6. The code should be a complete async function named 'run_test' that takes browser_name and headless parameters
+
+CRITICAL RULE: Always take screenshot BEFORE closing browser/page. Never close browser before screenshot.
+
+Example structure:
+async def run_test(browser_name='chromium', headless=True):
+    from playwright.async_api import async_playwright
+    logs = []
+    screenshot = None
+    browser = None
+    page = None
+    try:
+        async with async_playwright() as p:
+            browser = await getattr(p, browser_name).launch(headless=headless)
+            page = await browser.new_page()
+            # Your automation code here
+            logs.append("Step completed")
+            # CRITICAL: Screenshot BEFORE closing
+            screenshot = await page.screenshot()
+            await browser.close()
+            return {'success': True, 'logs': logs, 'screenshot': screenshot}
+    except Exception as e:
+        logs.append(f"Error: {str(e)}")
+        # Try to get screenshot even on error, BEFORE cleanup
+        if page:
+            try:
+                screenshot = await page.screenshot()
+            except:
+                pass
+        if browser:
+            try:
+                await browser.close()
+            except:
+                pass
+        return {'success': False, 'logs': logs, 'screenshot': screenshot}
+
+Only return the function code, no explanations."""},
+                {"role": "user", "content": f"Convert this to Playwright code for {browser}: {natural_language_command}"}
+            ],
+            temperature=0.3
+        )
+
+        code = response.choices[0].message.content.strip()
+        if code.startswith('```python'):
+            code = code[9:]
+        if code.startswith('```'):
+            code = code[3:]
+        if code.endswith('```'):
+            code = code[:-3]
+
+        return code.strip()
+    except Exception as e:
+        raise Exception(f"OpenAI API error: {str(e)}")
+
+
+def generate_playwright_code_from_recording(recorded_events):
+    """
+    Convert recorded events from ComprehensiveRecordingSessionManager to executable Playwright code.
+    This generates proper Playwright code with full browser launch, error handling, and screenshot capture.
+    """
+    if not recorded_events or len(recorded_events) == 0:
+        raise Exception("No recorded events to convert to code")
+    
+    # Start building the code
+    code_lines = [
+        "async def run_test(browser_name='chromium', headless=True):",
+        "    from playwright.async_api import async_playwright",
+        "    logs = []",
+        "    screenshot = None",
+        "    browser = None",
+        "    page = None",
+        "    ",
+        "    try:",
+        "        async with async_playwright() as p:",
+        "            browser = await getattr(p, browser_name).launch(headless=headless)",
+        "            page = await browser.new_page()",
+        "            ",
+    ]
+    
+    # Convert each event to Playwright code
+    for i, event in enumerate(recorded_events):
+        action = event.get('action')
+        target = event.get('target', '')
+        value = event.get('value', '')
+        description = event.get('description', '')
+        attributes = event.get('attributes', {})
+        
+        # Escape single quotes in strings
+        if value:
+            value = str(value).replace("'", "\\'")
+        if target:
+            target = str(target).replace("'", "\\'")
+        
+        if action == 'navigation':
+            # Navigation action
+            code_lines.append(f"            await page.goto('{target}')")
+            code_lines.append(f"            logs.append('Navigated to {target}')")
+            
+        elif action == 'click':
+            # Check if next event is navigation (click causes page change)
+            next_event = recorded_events[i + 1] if i + 1 < len(recorded_events) else None
+            is_link = attributes.get('tag') == 'a'
+            is_form_submit = attributes.get('type') == 'submit' or attributes.get('isFormSubmit')
+            causes_navigation = (next_event and next_event.get('action') == 'navigation')
+            
+            # If click causes navigation, use expect_navigation
+            if causes_navigation or is_link or is_form_submit:
+                code_lines.append(f"            # Click that triggers navigation")
+                code_lines.append(f"            async with page.expect_navigation():")
+                code_lines.append(f"                await page.click('{target}')")
+                code_lines.append(f"            logs.append('Clicked {target} and navigated')")
+            else:
+                # Regular click without navigation
+                code_lines.append(f"            await page.click('{target}')")
+                code_lines.append(f"            logs.append('Clicked {target}')")
+            
+        elif action == 'type':
+            # Input/fill action
+            code_lines.append(f"            await page.fill('{target}', '{value}')")
+            code_lines.append(f"            logs.append('Typed into {target}')")
+            
+        elif action == 'change':
+            # Change action (select, checkbox, radio)
+            attributes = event.get('attributes', {})
+            tag = attributes.get('tag', 'unknown')
+            
+            if tag == 'select':
+                code_lines.append(f"            await page.select_option('{target}', '{value}')")
+                code_lines.append(f"            logs.append('Selected option {value} in {target}')")
+            elif attributes.get('type') in ['checkbox', 'radio']:
+                if value:  # If checked
+                    code_lines.append(f"            await page.check('{target}')")
+                    code_lines.append(f"            logs.append('Checked {target}')")
+                else:
+                    code_lines.append(f"            await page.uncheck('{target}')")
+                    code_lines.append(f"            logs.append('Unchecked {target}')")
+            else:
+                code_lines.append(f"            await page.fill('{target}', '{value}')")
+                code_lines.append(f"            logs.append('Changed {target} to {value}')")
+                
+        elif action == 'keypress':
+            # Key press action
+            key = event.get('key', 'Enter')
+            code_lines.append(f"            await page.keyboard.press('{key}')")
+            code_lines.append(f"            logs.append('Pressed {key} key')")
+            
+        elif action == 'dialog':
+            # Dialog detection (alert, confirm, prompt)
+            dialog_type = event.get('dialog_type', 'alert')
+            dialog_message = event.get('target', '').replace("'", "\\'")
+            code_lines.append(f"            # Handle {dialog_type} dialog")
+            code_lines.append(f"            # Dialog will auto-accept in Playwright")
+            code_lines.append(f"            logs.append('Dialog appeared: {dialog_message}')")
+        
+        elif action == 'dialog_accept':
+            # Dialog acceptance
+            dialog_type = event.get('target', 'dialog')
+            code_lines.append(f"            logs.append('Accepted {dialog_type}')")
+        
+        elif action == 'popup_opened':
+            # New window/popup opened
+            popup_url = target.replace("'", "\\'") if target else 'popup'
+            code_lines.append(f"            # New popup window opened")
+            code_lines.append(f"            # Playwright automatically tracks popup pages")
+            code_lines.append(f"            logs.append('Popup opened: {popup_url}')")
+        
+        elif action == 'page_created':
+            # New tab created
+            page_url = target.replace("'", "\\'") if target else 'new page'
+            code_lines.append(f"            # New page/tab opened")
+            code_lines.append(f"            logs.append('New page opened: {page_url}')")
+        
+        elif action == 'frame_attached':
+            # iFrame/widget loaded
+            frame_name = event.get('frame_name', 'widget')
+            code_lines.append(f"            # Frame/Widget loaded: {frame_name}")
+            code_lines.append(f"            logs.append('Frame attached: {frame_name}')")
+            
+        elif action == 'form_submit':
+            # Form submission - press Enter on the form
+            code_lines.append(f"            await page.keyboard.press('Enter')")
+            code_lines.append(f"            logs.append('Submitted form')")
+    
+    code_lines.extend([
+        "            ",
+        "            # Take screenshot before closing",
+        "            screenshot = await page.screenshot()",
+        "            logs.append('Screenshot captured')",
+        "            ",
+        "            await browser.close()",
+        "            return {'success': True, 'logs': logs, 'screenshot': screenshot}",
+        "    ",
+        "    except Exception as e:",
+        "        logs.append(f'Error: {str(e)}')",
+        "        if 'page' in locals():",
+        "            try:",
+        "                screenshot = await page.screenshot()",
+        "            except:",
+        "                pass",
+        "        if 'browser' in locals():",
+        "            try:",
+        "                await browser.close()",
+        "            except:",
+        "                pass",
+        "        return {'success': False, 'logs': logs, 'screenshot': screenshot}"
+    ])
+    
+    return "\n".join(code_lines)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/api/history')
+def get_history():
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('SELECT * FROM test_history ORDER BY created_at DESC LIMIT 50')
+    rows = c.fetchall()
+    conn.close()
+    
+    history = []
+    for row in rows:
+        history.append({
+            'id': row[0],
+            'command': row[1],
+            'generated_code': row[2],
+            'healed_code': row[3],
+            'browser': row[4],
+            'mode': row[5],
+            'execution_location': row[6],
+            'status': row[7],
+            'logs': row[8],
+            'screenshot_path': row[9],
+            'created_at': row[10]
+        })
+    
+    return jsonify(history)
+
+@app.route('/api/history/rerun/<int:history_id>', methods=['POST'])
+def rerun_from_history(history_id):
+    """Re-execute a test from history using healed code if available, otherwise generated code."""
+    try:
+        data = request.json or {}
+        
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('SELECT command, generated_code, healed_code, browser, mode, execution_location FROM test_history WHERE id=?', (history_id,))
+        row = c.fetchone()
+        conn.close()
+        
+        if not row:
+            return jsonify({'error': 'History item not found'}), 404
+        
+        command, generated_code, healed_code, browser, mode, execution_location = row
+        
+        code_to_use = healed_code if healed_code else generated_code
+        code_source = 'healed' if healed_code else 'generated'
+        
+        use_healing = data.get('use_healing', True)
+        auto_save = data.get('auto_save', False)
+        
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('INSERT INTO test_history (command, generated_code, healed_code, browser, mode, execution_location, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                  (command, generated_code, healed_code, browser, mode, execution_location, 'pending'))
+        test_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        print(f"🔄 Re-running test from history #{history_id} as test #{test_id}")
+        print(f"   Using {code_source} code")
+        print(f"   Command: {command}")
+        
+        if execution_location == 'server':
+            if use_healing:
+                socketio.start_background_task(execute_with_healing, test_id, code_to_use, browser, mode, auto_save=auto_save, original_command=command)
+            else:
+                socketio.start_background_task(execute_on_server, test_id, code_to_use, browser, mode, auto_save=auto_save, original_command=command)
+        else:
+            agent_sid = None
+            for sid in connected_agents:
+                agent_sid = sid
+                break
+            
+            if use_healing:
+                socketio.start_background_task(execute_agent_with_healing, test_id, code_to_use, browser, mode, auto_save=auto_save, original_command=command)
+            else:
+                if agent_sid:
+                    socketio.emit('execute_on_agent', {
+                        'test_id': test_id,
+                        'code': code_to_use,
+                        'browser': browser,
+                        'mode': mode
+                    }, to=agent_sid)
+                else:
+                    return jsonify({'error': 'No agent connected'}), 503
+        
+        return jsonify({
+            'test_id': test_id,
+            'code': code_to_use,
+            'code_source': code_source,
+            'original_history_id': history_id,
+            'command': command
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/execute', methods=['POST'])
+def execute_test():
+    data = request.json
+    command = data.get('command')
+    browser = data.get('browser', 'chromium')
+    mode = data.get('mode', 'headless')
+    execution_location = data.get('execution_location', 'server')
+    use_healing = data.get('use_healing', True)
+    auto_save = data.get('auto_save', False)
+    
+    if not command:
+        return jsonify({'error': 'Command is required'}), 400
+    
+    try:
+        code_source = 'generated'
+        learned_task_id = None
+        learned_task_name = None
+        similarity_score = 0.0
+        
+        # OPTIMIZATION: First try to find a similar learned task
+        if semantic_search:
+            try:
+                print(f"🔍 Searching for similar learned tasks for: '{command}'")
+                results = semantic_search.search_tasks(command, top_k=1)
+                
+                if results and len(results) > 0:
+                    best_match = results[0]
+                    similarity_score = best_match.get('similarity_score', 0)
+                    
+                    # Use learned task if similarity is high enough (>75%)
+                    if similarity_score > 0.75:
+                        learned_task_id = best_match['task_id']
+                        learned_task_name = best_match['task_name']
+                        generated_code = best_match['playwright_code']
+                        code_source = 'learned'
+                        print(f"✅ Using learned task '{learned_task_name}' (similarity: {similarity_score:.2%})")
+                    else:
+                        print(f"⚠️  Found task but similarity too low ({similarity_score:.2%}), generating new code")
+                        generated_code = generate_playwright_code(command, browser)
+                else:
+                    print("ℹ️  No similar tasks found, generating new code")
+                    generated_code = generate_playwright_code(command, browser)
+            except Exception as search_error:
+                print(f"⚠️  Semantic search failed: {search_error}, falling back to code generation")
+                generated_code = generate_playwright_code(command, browser)
+        else:
+            print("ℹ️  Semantic search not available, generating new code")
+            generated_code = generate_playwright_code(command, browser)
+        
+        validator = CodeValidator()
+        if not validator.validate(generated_code):
+            error_msg = "Code failed security validation: " + "; ".join(validator.get_errors())
+            return jsonify({'error': error_msg}), 400
+        
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('INSERT INTO test_history (command, generated_code, browser, mode, execution_location, status) VALUES (?, ?, ?, ?, ?, ?)',
+                  (command, generated_code, browser, mode, execution_location, 'pending'))
+        test_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Execute the code
+        if execution_location == 'server':
+            if use_healing:
+                socketio.start_background_task(execute_with_healing, test_id, generated_code, browser, mode, auto_save=auto_save, original_command=command)
+            else:
+                socketio.start_background_task(execute_on_server, test_id, generated_code, browser, mode, auto_save=auto_save, original_command=command)
+        else:
+            # Agent execution - find agent's session ID
+            agent_sid = None
+            for sid in connected_agents:
+                agent_sid = sid
+                break  # Get the first available agent
+            
+            if use_healing:
+                socketio.start_background_task(execute_agent_with_healing, test_id, generated_code, browser, mode, auto_save=auto_save, original_command=command)
+            else:
+                if agent_sid:
+                    socketio.emit('execute_on_agent', {
+                        'test_id': test_id,
+                        'code': generated_code,
+                        'browser': browser,
+                        'mode': mode
+                    }, to=agent_sid)
+                else:
+                    return jsonify({'error': 'No agent connected'}), 503
+        
+        return jsonify({
+            'test_id': test_id, 
+            'code': generated_code,
+            'code_source': code_source,
+            'learned_task_id': learned_task_id,
+            'learned_task_name': learned_task_name,
+            'similarity_score': similarity_score
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def execute_on_server(test_id, code, browser, mode, auto_save=False, original_command=None):
+    executor = ServerExecutor()
+    headless = mode == 'headless'
+    
+    socketio.emit('execution_status', {
+        'test_id': test_id,
+        'status': 'running',
+        'message': f'Executing on server in {mode} mode...'
+    })
+    
+    result = executor.execute(code, browser, headless)
+    
+    screenshot_path = None
+    if result.get('screenshot'):
+        screenshot_path = f"screenshots/test_{test_id}.png"
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], screenshot_path), 'wb') as f:
+            f.write(result['screenshot'])
+    
+    logs_json = json.dumps(result.get('logs', [])) if result.get('logs') else '[]'
+    status = 'success' if result.get('success') else 'failed'
+    code = code if code else 'No code generated.'
+
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('UPDATE test_history SET status=?, logs=?, screenshot_path=? WHERE id=?',
+              (status, logs_json, screenshot_path, test_id))
+    conn.commit()
+    conn.close()
+    
+    # Auto-save successful executions as learned tasks
+    if auto_save and result.get('success') and original_command and semantic_search:
+        try:
+            task_id = str(uuid.uuid4())
+            task_name = original_command[:100]  # Limit name length
+            
+            task = LearnedTask(
+                task_id=task_id,
+                task_name=task_name,
+                playwright_code=code,
+                description=f"Auto-saved from successful execution in {mode} mode",
+                steps=[],
+                tags=[mode, browser, 'auto-saved']
+            )
+            task.save()
+            
+            # Index for semantic search
+            semantic_search.index_task(task)
+            print(f"✅ Auto-saved successful execution as learned task: '{task_name}'")
+            
+            socketio.emit('task_auto_saved', {
+                'test_id': test_id,
+                'task_id': task_id,
+                'task_name': task_name
+            })
+        except Exception as e:
+            print(f"⚠️  Failed to auto-save task: {e}")
+    
+    socketio.emit('execution_complete', {
+        'test_id': test_id,
+        'status': status,
+        'logs': result.get('logs', []),
+        'screenshot_path': screenshot_path
+    })
+
+def execute_with_healing(test_id, code, browser, mode, auto_save=False, original_command=None):
+    healing_executor = HealingExecutor(socketio, api_key=openai_api_key)
+    active_healing_executors[test_id] = healing_executor
+    headless = mode == 'headless'
+    
+    socketio.emit('execution_status', {
+        'test_id': test_id,
+        'status': 'running',
+        'message': f'Executing with healing in {mode} mode...'
+    })
+    
+    try:
+        result = asyncio.run(healing_executor.execute_with_healing(code, browser, headless, test_id))
+    finally:
+        if test_id in active_healing_executors:
+            del active_healing_executors[test_id]
+    
+    screenshot_path = None
+    if result.get('screenshot'):
+        screenshot_path = f"screenshots/test_{test_id}.png"
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], screenshot_path), 'wb') as f:
+            f.write(result['screenshot'])
+    
+    logs_json = json.dumps(result.get('logs', [])) if result.get('logs') else '[]'
+    status = 'success' if result.get('success') else 'failed'
+    healed_code = result.get('healed_script')
+    
+    print(f"\n💾 SAVING TO DATABASE:")
+    print(f"  test_id: {test_id}")
+    print(f"  status: {status}")
+    print(f"  healed_code is None: {healed_code is None}")
+    print(f"  healed_code length: {len(healed_code) if healed_code else 0}", flush=True)
+    
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('UPDATE test_history SET status=?, logs=?, screenshot_path=?, healed_code=? WHERE id=?',
+              (status, logs_json, screenshot_path, healed_code, test_id))
+    conn.commit()
+    conn.close()
+    
+    print(f"  ✅ Database updated successfully", flush=True)
+    
+    # Auto-save successful healed executions as learned tasks
+    if auto_save and result.get('success') and original_command and semantic_search:
+        try:
+            # Use healed code if available, otherwise use original code
+            final_code = healed_code if healed_code else code
+            task_id = str(uuid.uuid4())
+            task_name = original_command[:100]  # Limit name length
+            
+            task = LearnedTask(
+                task_id=task_id,
+                task_name=task_name,
+                playwright_code=final_code,
+                description=f"Auto-saved from successful {'healed' if healed_code else 'execution'} in {mode} mode",
+                steps=[],
+                tags=[mode, browser, 'auto-saved', 'healed' if healed_code else 'standard']
+            )
+            task.save()
+            
+            # Index for semantic search
+            semantic_search.index_task(task)
+            print(f"✅ Auto-saved successful {'healed ' if healed_code else ''}execution as learned task: '{task_name}'")
+            
+            socketio.emit('task_auto_saved', {
+                'test_id': test_id,
+                'task_id': task_id,
+                'task_name': task_name,
+                'was_healed': bool(healed_code)
+            })
+        except Exception as e:
+            print(f"⚠️  Failed to auto-save task: {e}")
+    
+    socketio.emit('execution_complete', {
+        'test_id': test_id,
+        'status': status,
+        'logs': result.get('logs', []),
+        'screenshot_path': screenshot_path,
+        'healed_script': healed_code,
+        'failed_locators': result.get('failed_locators', [])
+    })
+
+def execute_agent_with_healing(test_id, code, browser, mode, auto_save=False, original_command=None):
+    """Execute automation on agent with server-coordinated healing."""
+    import gevent
+    from gevent import monkey
+    
+    # Find the agent's session ID
+    agent_sid = None
+    for sid in connected_agents:
+        agent_sid = sid
+        break  # Get the first available agent
+    
+    healing_executor = HealingExecutor(socketio, api_key=openai_api_key)
+    healing_executor.execution_mode = 'agent'  # Mark as agent execution
+    healing_executor.agent_sid = agent_sid  # Store agent session ID
+    active_healing_executors[test_id] = healing_executor
+    headless = mode == 'headless'
+    
+    socketio.emit('execution_status', {
+        'test_id': test_id,
+        'status': 'running',
+        'message': f'Executing on agent with healing in {mode} mode...'
+    })
+    
+    # Run async code using asyncio.run() which creates its own event loop
+    async def _run_healing():
+        return await healing_executor.execute_with_healing(code, browser, headless, test_id)
+    
+    try:
+        # Use asyncio.run() to execute the async function
+        # This creates a new event loop specifically for this call
+        result = asyncio.run(_run_healing())
+    finally:
+        if test_id in active_healing_executors:
+            del active_healing_executors[test_id]
+    
+    screenshot_path = None
+    if result.get('screenshot'):
+        screenshot_path = f"screenshots/test_{test_id}.png"
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], screenshot_path), 'wb') as f:
+            f.write(result['screenshot'])
+    
+    logs_json = json.dumps(result.get('logs', [])) if result.get('logs') else '[]'
+    status = 'success' if result.get('success') else 'failed'
+    healed_code = result.get('healed_script')
+    
+    print(f"\n💾 SAVING TO DATABASE:")
+    print(f"  test_id: {test_id}")
+    print(f"  status: {status}")
+    print(f"  healed_code is None: {healed_code is None}")
+    print(f"  healed_code length: {len(healed_code) if healed_code else 0}", flush=True)
+    
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('UPDATE test_history SET status=?, logs=?, screenshot_path=?, healed_code=? WHERE id=?',
+              (status, logs_json, screenshot_path, healed_code, test_id))
+    conn.commit()
+    conn.close()
+    
+    # Auto-save successful healed executions as learned tasks
+    if auto_save and result.get('success') and original_command and semantic_search:
+        try:
+            # Use healed code if available, otherwise use original code
+            final_code = healed_code if healed_code else code
+            task_id = str(uuid.uuid4())
+            task_name = original_command[:100]  # Limit name length
+            
+            task = LearnedTask(
+                task_id=task_id,
+                task_name=task_name,
+                playwright_code=final_code,
+                description=f"Auto-saved from agent {'healed' if healed_code else 'execution'} in {mode} mode",
+                steps=[],
+                tags=[mode, browser, 'auto-saved', 'agent', 'healed' if healed_code else 'standard']
+            )
+            task.save()
+            
+            # Index for semantic search
+            semantic_search.index_task(task)
+            print(f"✅ Auto-saved successful agent {'healed ' if healed_code else ''}execution as learned task: '{task_name}'")
+            
+            socketio.emit('task_auto_saved', {
+                'test_id': test_id,
+                'task_id': task_id,
+                'task_name': task_name,
+                'was_healed': bool(healed_code)
+            })
+        except Exception as e:
+            print(f"⚠️  Failed to auto-save task: {e}")
+    
+    print(f"  ✅ Database updated successfully", flush=True)
+    
+    socketio.emit('execution_complete', {
+        'test_id': test_id,
+        'status': status,
+        'logs': result.get('logs', []),
+        'screenshot_path': screenshot_path,
+        'healed_script': healed_code,
+        'failed_locators': result.get('failed_locators', [])
+    })
+
+@app.route('/api/heal', methods=['POST'])
+def heal_locator():
+    data = request.json
+    test_id = data.get('test_id')
+    failed_locator = data.get('failed_locator')
+    healed_locator = data.get('healed_locator')
+    
+    if not all([test_id, failed_locator, healed_locator]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    try:
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('SELECT generated_code, healed_code FROM test_history WHERE id=?', (test_id,))
+        row = c.fetchone()
+        
+        if not row:
+            return jsonify({'error': 'Test not found'}), 404
+        
+        original_code = row[0]
+        current_healed = row[1] or original_code
+        
+        new_healed = current_healed.replace(failed_locator, healed_locator)
+        
+        c.execute('UPDATE test_history SET healed_code=? WHERE id=?', (new_healed, test_id))
+        conn.commit()
+        conn.close()
+        
+        socketio.emit('script_healed', {
+            'test_id': test_id,
+            'healed_script': new_healed,
+            'failed_locator': failed_locator,
+            'healed_locator': healed_locator
+        })
+        
+        return jsonify({'success': True, 'healed_script': new_healed})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/api/agent/download')
+def download_agent():
+    # Get the current server URL dynamically
+    replit_domain = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
+    server_url = f'https://{replit_domain}' if replit_domain != 'localhost:5000' else 'http://localhost:5000'
+    
+    # Read the local agent file
+    with open('visionvault/agents/local_agent.py', 'r', encoding='utf-8') as f:
+        agent_code = f.read()
+    
+    # Replace the default port in get_server_url to prioritize the current server
+    # This ensures downloaded agent connects to the right server by default
+    agent_code = agent_code.replace(
+        'local_ports = [5000, 8000, 3000, 7890]',
+        f'# Auto-configured for this server\n    local_ports = [{replit_domain.split(":")[-1] if ":" in replit_domain else "5000"}, 5000, 8000, 3000, 7890]'
+    )
+    
+    # Also add the server URL as a comment for reference
+    agent_code = f'# Auto-downloaded from: {server_url}\n# This agent will automatically connect to the server\n\n{agent_code}'
+    
+    # Create a temporary response with the modified content
+    return Response(
+        agent_code,
+        mimetype='text/x-python',
+        headers={'Content-Disposition': 'attachment; filename=local_agent.py'}
+    )
+
+# ========== Persistent Learning API Endpoints ==========
+
+@app.route('/api/tasks', methods=['GET'])
+def get_all_tasks():
+    """Get all learned tasks."""
+    try:
+        limit = request.args.get('limit', 100, type=int)
+        tasks = LearnedTask.get_all(limit=limit)
+        return jsonify([task.to_dict() for task in tasks])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/<task_id>', methods=['GET'])
+def get_task(task_id):
+    """Get a specific learned task."""
+    try:
+        task = LearnedTask.get_by_id(task_id)
+        if not task:
+            return jsonify({'error': 'Task not found'}), 404
+        return jsonify(task.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/save', methods=['POST'])
+def save_learned_task():
+    """Save a new learned task or update existing one."""
+    try:
+        data = request.json
+        
+        # Extract task data
+        task_id = data.get('task_id') or str(uuid.uuid4())
+        task_name = data.get('task_name')
+        playwright_code = data.get('playwright_code')
+        description = data.get('description', '')
+        steps = data.get('steps', [])
+        tags = data.get('tags', [])
+        
+        if not task_name or not playwright_code:
+            return jsonify({'error': 'task_name and playwright_code are required'}), 400
+        
+        # Create task object
+        task = LearnedTask(
+            task_id=task_id,
+            task_name=task_name,
+            playwright_code=playwright_code,
+            description=description,
+            steps=steps,
+            tags=tags
+        )
+        
+        # Save to database
+        task.save()
+        
+        # Index for semantic search
+        if semantic_search:
+            try:
+                semantic_search.index_task(task)
+                print(f"✅ Task '{task_name}' indexed for semantic search")
+            except Exception as e:
+                print(f"⚠️ Failed to index task for search: {e}")
+        
+        return jsonify({
+            'success': True,
+            'task': task.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    """Delete a learned task."""
+    try:
+        task = LearnedTask.get_by_id(task_id)
+        if not task:
+            return jsonify({'error': 'Task not found'}), 404
+        
+        # Remove from semantic search index
+        if semantic_search:
+            semantic_search.delete_task_from_index(task_id)
+        
+        # Delete from database
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('DELETE FROM learned_tasks WHERE task_id=?', (task_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/search', methods=['POST'])
+def search_tasks():
+    """Search for tasks using natural language."""
+    try:
+        data = request.json
+        query = data.get('query')
+        top_k = data.get('top_k', 5)
+        
+        if not query:
+            return jsonify({'error': 'query is required'}), 400
+        
+        if not semantic_search:
+            return jsonify({
+                'error': 'OPENAI_API_KEY is not set. Semantic search requires an OpenAI API key to generate embeddings.'
+            }), 400
+        
+        # Search for relevant tasks
+        results = semantic_search.search_tasks(query, top_k=top_k)
+        
+        return jsonify({
+            'query': query,
+            'results': results
+        })
+    except Exception as e:
+        error_msg = str(e)
+        # Check if it's an API key or embedding-related error
+        if any(keyword in error_msg.lower() for keyword in ['api', 'key', 'embedding', 'openai', 'authentication', 'unauthorized']):
+            return jsonify({
+                'error': f'OPENAI_API_KEY error: {error_msg}'
+            }), 400
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/<task_id>/execute', methods=['POST'])
+def execute_learned_task(task_id):
+    """Execute a learned task."""
+    try:
+        data = request.json
+        browser = data.get('browser', 'chromium')
+        mode = data.get('mode', 'headless')
+        execution_location = data.get('execution_location', 'server')
+        
+        # Get the task
+        task = LearnedTask.get_by_id(task_id)
+        if not task:
+            return jsonify({'error': 'Task not found'}), 404
+        
+        # Use the task's code instead of generating new code
+        code = task.playwright_code
+        
+        # Validate the code
+        validator = CodeValidator()
+        if not validator.validate(code):
+            error_msg = "Task code failed security validation: " + "; ".join(validator.get_errors())
+            return jsonify({'error': error_msg}), 400
+        
+        # Create a test history entry for tracking
+        conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        c = conn.cursor()
+        c.execute('INSERT INTO test_history (command, generated_code, browser, mode, execution_location, status) VALUES (?, ?, ?, ?, ?, ?)',
+                  (f"Learned Task: {task.task_name}", code, browser, mode, execution_location, 'pending'))
+        test_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Execute the task
+        if execution_location == 'server':
+            socketio.start_background_task(execute_on_server, test_id, code, browser, mode)
+        else:
+            agent_sid = None
+            for sid in connected_agents:
+                agent_sid = sid
+                break
+            
+            if agent_sid:
+                socketio.emit('execute_on_agent', {
+                    'test_id': test_id,
+                    'code': code,
+                    'browser': browser,
+                    'mode': mode
+                }, to=agent_sid)
+            else:
+                return jsonify({'error': 'No agent connected'}), 503
+        
+        # Update task execution stats
+        start_time = time.time()
+        
+        # Record execution in background
+        def record_execution():
+            # Wait a bit for execution to complete
+            time.sleep(2)
+            
+            # Get execution result from test_history
+            conn = sqlite3.connect(app.config['DATABASE_PATH'])
+            c = conn.cursor()
+            c.execute('SELECT status, logs FROM test_history WHERE id=?', (test_id,))
+            row = c.fetchone()
+            
+            if row:
+                status = row[0]
+                logs = row[1]
+                success = status == 'success'
+                
+                # Update task stats
+                task = LearnedTask.get_by_id(task_id)
+                if task:
+                    if success:
+                        task.success_count += 1
+                    else:
+                        task.failure_count += 1
+                    task.last_executed = datetime.now()
+                    task.save()
+                
+                # Record execution
+                execution_time = int((time.time() - start_time) * 1000)
+                execution = TaskExecution(
+                    task_id=task_id,
+                    execution_result=status,
+                    success=success,
+                    error_message=logs if not success else None,
+                    execution_time_ms=execution_time
+                )
+                execution.save()
+            
+            conn.close()
+        
+        socketio.start_background_task(record_execution)
+        
+        return jsonify({
+            'test_id': test_id,
+            'task_name': task.task_name,
+            'message': 'Task execution started'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/recall', methods=['POST'])
+def recall_and_execute():
+    """
+    Recall Mode: Search for a task by natural language and execute it.
+    This is the main entry point for the persistent learning system.
+    """
+    try:
+        data = request.json
+        query = data.get('query')
+        browser = data.get('browser', 'chromium')
+        mode = data.get('mode', 'headless')
+        execution_location = data.get('execution_location', 'server')
+        auto_execute = data.get('auto_execute', False)
+        
+        if not query:
+            return jsonify({'error': 'query is required'}), 400
+        
+        if not semantic_search:
+            return jsonify({
+                'error': 'OPENAI_API_KEY is not set. Recall Mode requires an OpenAI API key to search for tasks.'
+            }), 400
+        
+        # Search for the most relevant task
+        try:
+            results = semantic_search.search_tasks(query, top_k=1)
+        except Exception as search_error:
+            error_msg = str(search_error)
+            if any(keyword in error_msg.lower() for keyword in ['api', 'key', 'embedding', 'openai', 'authentication', 'unauthorized']):
+                return jsonify({
+                    'error': f'OPENAI_API_KEY error: {error_msg}'
+                }), 400
+            raise
+        
+        if not results:
+            return jsonify({
+                'found': False,
+                'message': 'No matching tasks found. Consider creating a new task.'
+            })
+        
+        # Get the best match
+        best_match = results[0]
+        task_id = best_match['task_id']
+        similarity_score = best_match.get('similarity_score', 0)
+        
+        # If auto_execute is True and similarity is high enough, execute immediately
+        if auto_execute and similarity_score > 0.7:
+            # Execute the task
+            task = LearnedTask.get_by_id(task_id)
+            code = task.playwright_code
+            
+            # Create test history entry
+            conn = sqlite3.connect(app.config['DATABASE_PATH'])
+            c = conn.cursor()
+            c.execute('INSERT INTO test_history (command, generated_code, browser, mode, execution_location, status) VALUES (?, ?, ?, ?, ?, ?)',
+                      (query, code, browser, mode, execution_location, 'pending'))
+            test_id = c.lastrowid
+            conn.commit()
+            conn.close()
+            
+            # Execute
+            if execution_location == 'server':
+                socketio.start_background_task(execute_on_server, test_id, code, browser, mode)
+            
+            return jsonify({
+                'found': True,
+                'executed': True,
+                'test_id': test_id,
+                'task': best_match,
+                'similarity_score': similarity_score
+            })
+        else:
+            # Return the best match for user confirmation
+            return jsonify({
+                'found': True,
+                'executed': False,
+                'task': best_match,
+                'similarity_score': similarity_score,
+                'message': 'Task found. Please confirm execution or adjust the query.'
+            })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Teaching Mode Recording - Store recorded actions by session
+recording_sessions = {}
+
+@app.route('/api/teaching/start', methods=['POST'])
+def start_teaching_recording():
+    """Start interactive recording session for Teaching Mode - routes to agent."""
+    try:
+        session_id = request.json.get('session_id') or str(uuid.uuid4())
+        # Don't provide default URL - let browser open blank (like Playwright codegen)
+        start_url = request.json.get('start_url', '')
+        
+        # Check if any agent is connected
+        if not connected_agents:
+            return jsonify({
+                'error': 'No agent connected. Please connect a local agent to use Teaching Mode.',
+                'session_id': session_id
+            }), 400
+        
+        # Initialize recording session
+        recording_sessions[session_id] = {
+            'actions': [],
+            'start_time': time.time(),
+            'start_url': start_url
+        }
+        
+        # Emit start_recording event to agent
+        socketio.emit('start_recording', {
+            'session_id': session_id,
+            'start_url': start_url
+        })
+        
+        print(f"📤 Sent start_recording to agent for session {session_id}")
+        
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'message': 'Recording request sent to agent. Browser will open on your machine.'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/teaching/navigate', methods=['POST'])
+def teaching_navigate():
+    """Navigate to a URL during recording."""
+    try:
+        session_id = request.json.get('session_id')
+        url = request.json.get('url')
+        
+        if not session_id or session_id not in active_recorders:
+            return jsonify({'error': 'No active recording session'}), 400
+        
+        recorder = active_recorders[session_id]
+        loop = active_loops.get(session_id)
+        
+        if not loop or not recorder.page:
+            return jsonify({'error': 'Recording session not ready'}), 400
+        
+        # Run navigation using the session's event loop
+        try:
+            asyncio.run_coroutine_threadsafe(recorder.page.goto(url), loop).result(timeout=10)
+            recorder.record_goto(url)
+            return jsonify({'success': True})
+        except Exception as e:
+            print(f"Navigation error: {e}")
+            return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/teaching/actions', methods=['GET'])
+def get_teaching_actions():
+    """Get currently recorded actions."""
+    try:
+        session_id = request.args.get('session_id')
+        
+        if not session_id or session_id not in recording_sessions:
+            return jsonify({'actions': []})
+        
+        session = recording_sessions[session_id]
+        return jsonify({'actions': session.get('actions', [])})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/teaching/stop', methods=['POST'])
+def stop_teaching_recording():
+    """Stop recording and return captured actions."""
+    try:
+        session_id = request.json.get('session_id')
+        
+        if not session_id or session_id not in recording_sessions:
+            return jsonify({'error': 'No active recording session'}), 400
+        
+        # Emit stop_recording event to agent
+        socketio.emit('stop_recording', {
+            'session_id': session_id
+        })
+        
+        print(f"📤 Sent stop_recording to agent for session {session_id}")
+        
+        # Return success - actual actions will come via recording_stopped event
+        return jsonify({
+            'success': True,
+            'message': 'Stop request sent to agent'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/teaching/save_to_library', methods=['POST'])
+def save_recording_to_library():
+    """Save a recorded session to the task library."""
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        task_name = data.get('task_name')
+        description = data.get('description', '')
+        tags = data.get('tags', [])
+        
+        if not session_id or not task_name:
+            return jsonify({'error': 'session_id and task_name are required'}), 400
+        
+        session = recording_sessions.get(session_id)
+        if not session:
+            return jsonify({'error': 'Recording session not found'}), 404
+        
+        playwright_code = session.get('playwright_code')
+        actions = session.get('actions', [])
+        
+        if not playwright_code:
+            return jsonify({'error': 'No recorded code available'}), 400
+        
+        task_id = str(uuid.uuid4())
+        
+        steps = [{'step': i+1, 'description': action.get('description', '')} 
+                 for i, action in enumerate(actions)]
+        
+        task = LearnedTask(
+            task_id=task_id,
+            task_name=task_name,
+            playwright_code=playwright_code,
+            description=description,
+            steps=steps,
+            tags=tags + ['recorded', 'teaching-mode']
+        )
+        
+        task.save()
+        
+        if semantic_search:
+            try:
+                semantic_search.index_task(task)
+                print(f"✅ Recorded task '{task_name}' indexed for semantic search")
+            except Exception as e:
+                print(f"⚠️ Failed to index task for search: {e}")
+        
+        print(f"✅ Recording saved to task library: {task_name} ({task_id})")
+        
+        return jsonify({
+            'success': True,
+            'task': task.to_dict(),
+            'message': f'Task "{task_name}" saved to library'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@socketio.on('connect')
+def handle_connect():
+    print(f'Client connected: {request.sid}')
+    emit('connected', {'sid': request.sid})
+    # Send current list of connected agents to newly connected web client
+    socketio.emit('agents_update', {'agents': list(connected_agents.values())})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f'Client disconnected: {request.sid}')
+    if request.sid in connected_agents:
+        del connected_agents[request.sid]
+        print(f'Updated connected_agents after disconnect: {connected_agents}')
+        socketio.emit('agents_update', {'agents': list(connected_agents.values())})
+
+@socketio.on('agent_register')
+def handle_agent_register(data):
+    agent_id = data.get('agent_id')
+    connected_agents[request.sid] = {
+        'agent_id': agent_id,
+        'browsers': data.get('browsers', []),
+        'connected_at': datetime.now().isoformat()
+    }
+    print(f'Agent registered: {agent_id}')
+    print(f'Updated connected_agents after register: {connected_agents}')
+    emit('agent_registered', {'status': 'success'})
+    print(f'Emitting agents_update: {list(connected_agents.values())}')
+    socketio.emit('agents_update', {'agents': list(connected_agents.values())})
+
+@socketio.on('agent_result')
+def handle_agent_result(data):
+    test_id = data.get('test_id')
+    success = data.get('success')
+    logs = data.get('logs', [])
+    screenshot_data = data.get('screenshot')
+    
+    screenshot_path = None
+    if screenshot_data:
+        screenshot_path = f"screenshots/test_{test_id}.png"
+        screenshot_bytes = base64.b64decode(screenshot_data)
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], screenshot_path), 'wb') as f:
+            f.write(screenshot_bytes)
+    
+    logs_json = json.dumps(logs)
+    status = 'success' if success else 'failed'
+    
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('UPDATE test_history SET status=?, logs=?, screenshot_path=? WHERE id=?',
+              (status, logs_json, screenshot_path, test_id))
+    conn.commit()
+    conn.close()
+    
+    socketio.emit('execution_complete', {
+        'test_id': test_id,
+        'status': status,
+        'logs': logs,
+        'screenshot_path': screenshot_path
+    })
+
+@socketio.on('agent_log')
+def handle_agent_log(data):
+    socketio.emit('execution_status', {
+        'test_id': data.get('test_id'),
+        'status': 'running',
+        'message': data.get('message')
+    })
+
+
+@socketio.on('heartbeat')
+def handle_heartbeat(data):
+    """Handle heartbeat from agent to keep connection alive."""
+    # Simply acknowledge - the ping/pong mechanism handles the rest
+    # This prevents timeout on idle connections
+    pass
+
+@socketio.on('recording_started')
+def handle_recording_started(data):
+    """Handle recording started event from agent."""
+    session_id = data.get('session_id')
+    status = data.get('status')
+    
+    if status == 'success':
+        print(f"✅ Recording session {session_id} started on agent")
+        socketio.emit('recording_status', {
+            'session_id': session_id,
+            'status': 'started',
+            'message': data.get('message', 'Browser opened on agent machine')
+        })
+    else:
+        error = data.get('error', 'Unknown error')
+        print(f"❌ Recording session {session_id} failed to start: {error}")
+        socketio.emit('recording_status', {
+            'session_id': session_id,
+            'status': 'error',
+            'error': error
+        })
+
+
+@socketio.on('recording_actions')
+def handle_recording_actions(data):
+    """Handle periodic action updates from agent."""
+    session_id = data.get('session_id')
+    actions = data.get('actions', [])
+    
+    if session_id in recording_sessions:
+        recording_sessions[session_id]['actions'].extend(actions)
+        print(f"📥 Received {len(actions)} actions for session {session_id}. Total: {len(recording_sessions[session_id]['actions'])}")
+
+
+@socketio.on('recording_stopped')
+def handle_recording_stopped(data):
+    """Handle recording stopped event from agent."""
+    session_id = data.get('session_id')
+    status = data.get('status')
+    
+    if status == 'success':
+        final_actions = data.get('final_actions', [])
+        
+        if session_id in recording_sessions:
+            # Add final actions
+            recording_sessions[session_id]['actions'].extend(final_actions)
+            all_actions = recording_sessions[session_id]['actions']
+            
+            print(f"✅ Recording session {session_id} stopped. Total actions: {len(all_actions)}")
+            
+            # Generate Playwright code from recorded actions
+            playwright_code = None
+            try:
+                if all_actions:
+                    playwright_code = generate_playwright_code_from_recording(all_actions)
+                    print(f"✅ Generated Playwright code from {len(all_actions)} actions")
+            except Exception as e:
+                print(f"⚠️ Error generating Playwright code: {e}")
+            
+            # Emit to web client with both actions and generated code
+            socketio.emit('recording_complete', {
+                'session_id': session_id,
+                'actions': all_actions,
+                'playwright_code': playwright_code
+            })
+    else:
+        error = data.get('error', 'Unknown error')
+        print(f"❌ Recording session {session_id} stop failed: {error}")
+        socketio.emit('recording_status', {
+            'session_id': session_id,
+            'status': 'error',
+            'error': error
+        })
+
+
+@socketio.on('recording_status')
+def handle_recording_status(data):
+    """Handle recording status updates from agent (including auto-stop on browser close)."""
+    session_id = data.get('session_id')
+    status = data.get('status')
+    
+    if status == 'stopped':
+        playwright_code = data.get('playwright_code')
+        actions = data.get('actions', [])
+        auto_stopped = data.get('auto_stopped', False)
+        
+        print(f"✅ Recording session {session_id} {'auto-' if auto_stopped else ''}stopped")
+        print(f"   Playwright code: {'Yes' if playwright_code else 'No'}")
+        print(f"   Actions extracted: {len(actions)}")
+        
+        if session_id in recording_sessions:
+            recording_sessions[session_id]['playwright_code'] = playwright_code
+            recording_sessions[session_id]['actions'] = actions
+        else:
+            recording_sessions[session_id] = {
+                'playwright_code': playwright_code,
+                'actions': actions,
+                'start_time': time.time()
+            }
+        
+        socketio.emit('recording_complete', {
+            'session_id': session_id,
+            'playwright_code': playwright_code,
+            'actions': actions,
+            'auto_stopped': auto_stopped,
+            'message': 'Browser closed. Recording stopped automatically.' if auto_stopped else 'Recording stopped.'
+        })
+    else:
+        socketio.emit('recording_status', data)
+
+
+@socketio.on('element_selected')
+def handle_element_selected(data):
+    test_id = data.get('test_id')
+    selector = data.get('selector')
+    failed_locator = data.get('failed_locator')  # Agent should send this
+    
+    print(f"\n✅ ELEMENT SELECTED EVENT RECEIVED:")
+    print(f"  test_id: {test_id}")
+    print(f"  selector: {selector}")
+    print(f"  failed_locator: {failed_locator}", flush=True)
+    
+    # Get the generated code from database
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('SELECT generated_code FROM test_history WHERE id=?', (test_id,))
+    row = c.fetchone()
+    
+    if not row:
+        print(f"  ❌ Test {test_id} not found in database", flush=True)
+        conn.close()
+        socketio.emit('error', {
+            'test_id': test_id,
+            'message': 'Test not found in database'
+        })
+        return
+    
+    generated_code = row[0]
+    
+    # If failed_locator not provided by agent, try to extract from healing_executor
+    if not failed_locator and test_id in active_healing_executors:
+        healing_executor = active_healing_executors[test_id]
+        if healing_executor.failed_locators:
+            failed_locator = healing_executor.failed_locators[-1]['locator']
+    
+    # Heal the script
+    healed_code = generated_code.replace(failed_locator, selector) if failed_locator else generated_code
+    
+    print(f"\n🔧 HEALING SCRIPT IN handle_element_selected:")
+    print(f"  Failed locator: '{failed_locator}'")
+    print(f"  Healed locator: '{selector}'")
+    print(f"  Replacement successful: {healed_code != generated_code}")
+    print(f"  Healed code length: {len(healed_code)}", flush=True)
+    
+    # Save healed code to database
+    c.execute('UPDATE test_history SET healed_code=? WHERE id=?', (healed_code, test_id))
+    conn.commit()
+    conn.close()
+    
+    print(f"  ✅ Healed code saved to database for test {test_id}", flush=True)
+    
+    # Update healing executor if it exists
+    if test_id in active_healing_executors:
+        healing_executor = active_healing_executors[test_id]
+        healing_executor.set_user_selector(selector)
+        healing_executor.healed_script = healed_code
+    
+    socketio.emit('element_selected_confirmed', {
+        'test_id': test_id,
+        'selector': selector,
+        'failed_locator': failed_locator,
+        'healed_script': healed_code
+    })
+
+@socketio.on('healing_attempt_result')
+def handle_healing_attempt_result(data):
+    """Handle result from agent healing attempt execution."""
+    test_id = data.get('test_id')
+    
+    if test_id in active_healing_executors:
+        healing_executor = active_healing_executors[test_id]
+        healing_executor.set_agent_result({
+            'success': data.get('success'),
+            'logs': data.get('logs', []),
+            'screenshot': data.get('screenshot')
+        })
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 6890))
+    socketio.run(
+        app,
+        host='127.0.0.1',  # localhost
+        port=port,
+        debug=True,
+        allow_unsafe_werkzeug=True
+    )
