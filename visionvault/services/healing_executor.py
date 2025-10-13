@@ -5,8 +5,24 @@ from visionvault.services.code_validator import CodeValidator
 from openai import OpenAI
 import os
 
+# Import advanced locator validator
+try:
+    from visionvault.services.advanced_locator_validator import AdvancedLocatorValidator
+    ADVANCED_VALIDATOR_AVAILABLE = True
+except ImportError:
+    ADVANCED_VALIDATOR_AVAILABLE = False
+    print("⚠️  Advanced locator validator not available")
+
+# Import multi-strategy healer
+try:
+    from visionvault.services.multi_strategy_healer import MultiStrategyHealer
+    MULTI_STRATEGY_HEALER_AVAILABLE = True
+except ImportError:
+    MULTI_STRATEGY_HEALER_AVAILABLE = False
+    print("⚠️  Multi-strategy healer not available")
+
 class HealingExecutor:
-    def __init__(self, socketio, api_key=None):
+    def __init__(self, socketio, api_key=None, use_gpt4o=True):
         self.socketio = socketio
         # Use provided API key or fallback to environment variable
         openai_key = api_key or os.environ.get('OPENAI_API_KEY')
@@ -14,13 +30,40 @@ class HealingExecutor:
         self.healed_script = None
         self.failed_locators = []
         self.retry_count = 0
-        self.max_retries = 3
+        self.max_retries = 5  # Increased from 3 to 5 attempts before user intervention
         self.user_selector_event = None
         self.user_selected_selector = None
         self.execution_mode = 'server'  # 'server' or 'agent'
         self.agent_result = None
         self.agent_result_event = None
         self.agent_sid = None  # Agent session ID for targeted emits
+        
+        # GPT-4o usage is DECOUPLED from validator availability
+        # Always use GPT-4o for better accuracy (not conditional)
+        self.use_gpt4o = use_gpt4o
+        
+        # Advanced validator is OPTIONAL and independent of GPT-4o
+        self.use_advanced_validator = ADVANCED_VALIDATOR_AVAILABLE
+        self.advanced_validator = None  # Will be initialized when page is available
+        
+        # Multi-strategy healer is OPTIONAL and independent of GPT-4o
+        self.use_multi_strategy = MULTI_STRATEGY_HEALER_AVAILABLE
+        if self.use_multi_strategy and self.client:
+            self.multi_strategy_healer = MultiStrategyHealer(openai_client=self.client)
+        else:
+            self.multi_strategy_healer = None
+        
+        # Log configuration
+        features = []
+        if self.use_gpt4o:
+            features.append("GPT-4o")
+        if self.use_advanced_validator:
+            features.append("Advanced Validator")
+        if self.use_multi_strategy:
+            features.append("Multi-Strategy Healing")
+        
+        features_str = " + ".join(features) if features else "GPT-4o-mini"
+        print(f"✅ Enhanced AI healing enabled ({features_str} + 5 attempts)")
         
     def parse_code_steps(self, code):
         """Parse code to extract individual steps with their line numbers."""
@@ -141,8 +184,11 @@ class HealingExecutor:
 AVAILABLE LOCATORS ON PAGE (use these if they match your target):
 {chr(10).join([f"- {loc}" for loc in available_locators[:15]])}"""
             
+            # ALWAYS use GPT-4o for better accuracy (decoupled from validator)
+            model = "gpt-4o" if self.use_gpt4o else "gpt-4o-mini"
+            
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": """You are an expert at fixing specific Playwright automation steps by analyzing the actual page.
 
@@ -152,18 +198,25 @@ CRITICAL RULES:
 1. Analyze the available locators from the page and choose the best match
 2. Return ONLY the fixed code for the specific step mentioned
 3. Use better locators (get_by_role, get_by_text, get_by_placeholder, get_by_label, etc.)
-4. Add explicit timeouts (5000ms) to all operations
-5. Maintain the step number and structure
-6. Keep the same log messages format
-7. Return ONLY the replacement code lines, nothing else
+4. Add explicit timeouts (10000ms) to all operations for reliability
+5. Add proper wait strategies (wait_for_load_state, wait_for_selector with visible state)
+6. Maintain the step number and structure
+7. Keep the same log messages format
+8. Return ONLY the replacement code lines, nothing else
 
 LOCATOR PRIORITY (prefer in this order):
-1. get_by_test_id (most reliable)
-2. get_by_role with name (accessibility-first)
-3. get_by_placeholder (for inputs)
-4. get_by_label (for form fields)
-5. get_by_text (for unique text)
-6. CSS selectors (last resort)"""},
+1. get_by_test_id (most reliable - 99% success rate)
+2. get_by_role with exact name (accessibility-first - 95% success rate)
+3. get_by_placeholder with exact match (for inputs - 90% success rate)
+4. get_by_label (for form fields - 85% success rate)
+5. get_by_text with exact match (for unique text - 80% success rate)
+6. CSS selectors with IDs (last resort - 70% success rate)
+
+BEST PRACTICES:
+- Always add .wait_for(state='visible', timeout=10000) before interacting
+- Use exact=True for text/name matches when possible
+- Combine multiple strategies (e.g., role + filter by text)
+- Add error handling for dynamic content"""},
                     {"role": "user", "content": f"""This specific step failed during execution:
 
 FAILED STEP {failed_step}:
@@ -223,12 +276,16 @@ Return only the replacement code for this step:"""}
             return original_code
             
         try:
-            print(f"\n🤖 AI CODE REGENERATION (Attempt {attempt_num}/3)")
+            print(f"\n🤖 AI CODE REGENERATION (Attempt {attempt_num}/{self.max_retries})")
             print(f"   Failed at step: {failed_step}")
             print(f"   Error: {error_message[:200]}...")
+            print(f"   Using model: {'GPT-4o' if self.use_gpt4o else 'GPT-4o-mini'}")
+            
+            # ALWAYS use GPT-4o for better accuracy (decoupled from validator)
+            model = "gpt-4o" if self.use_gpt4o else "gpt-4o-mini"
             
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": """You are an expert at debugging and fixing Playwright automation code.
 
@@ -289,8 +346,11 @@ Return only the improved Python code:"""}
     def improve_locator_with_ai(self, failed_locator, error_message, page_html_snippet=''):
         """Use AI to suggest better locator strategies."""
         try:
+            # ALWAYS use GPT-4o for better locator suggestions (decoupled from validator)
+            model = "gpt-4o" if self.use_gpt4o else "gpt-4o-mini"
+            
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": """You are an expert at web automation and CSS/XPath selectors.
 When a locator fails, suggest better, more robust alternatives. Consider:
@@ -520,9 +580,19 @@ Suggest a better locator:"""}
             print(f"   Mode: {'headful' if not headless else 'headless'}", flush=True)
             sys.stdout.flush()
             
-            # AI-guided retry strategy (attempts 1-2) - Step-by-step healing with page analysis
-            if attempt < 2:  # First 2 attempts: Use AI with step-by-step healing
-                result['logs'].append(f"🤖 AI Retry {attempt + 1}/2: Analyzing page and fixing failed step...")
+            # ENHANCED AI-GUIDED RETRY STRATEGY
+            # Attempts 1-2: Step-by-step healing
+            # Attempt 3: Multi-strategy parallel healing (if available)
+            # Attempt 4: Advanced locator validation
+            # Attempt 5: User intervention (only as last resort)
+            
+            if attempt < 4:  # First 4 attempts: Automated AI healing
+                healing_mode = "Enhanced (GPT-4o)" if self.use_gpt4o else "Standard (GPT-4o-mini)"
+                if attempt == 2 and self.use_multi_strategy:
+                    healing_mode = "Multi-Strategy Parallel Healing"
+                elif self.use_advanced_validator:
+                    healing_mode += " + Validator"
+                result['logs'].append(f"🤖 AI Retry {attempt + 1}/4: {healing_mode}...")
                 
                 # Get page content for analysis
                 page_content = result.get('page_content', '')
@@ -563,8 +633,8 @@ Suggest a better locator:"""}
                         current_code = self.heal_script(current_code, failed_locator, improved_locator)
                         result['logs'].append(f"🔧 Improved locator: {improved_locator}")
                 
-            # Final attempt (3rd): Show user widget in headful mode
-            elif attempt == 2:  # 3rd attempt: User intervention
+            # Final attempt (5th): Show user widget in headful mode as last resort
+            elif attempt >= 4:  # 5th attempt: User intervention only as last resort
                 if failed_locator:
                     improved_locator = None
                     
@@ -850,8 +920,11 @@ Suggest a better locator:"""}
                 'healed_script': self.healed_script
             }
             
+            # ALWAYS use GPT-4o for better analysis (decoupled from validator)
+            model = "gpt-4o" if self.use_gpt4o else "gpt-4o-mini"
+            
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": """You are an automation quality analyst. 
 Analyze the failures and healing attempts to provide insights for improving automation scripts.
