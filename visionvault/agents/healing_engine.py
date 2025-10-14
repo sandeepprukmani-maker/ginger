@@ -245,18 +245,28 @@ class HealingEngine(BrowserManager):
                                 'logs': result.get('logs', []),
                                 'screenshot': screenshot_b64
                             })
-                            await self.cleanup_browser()
+                            # DON'T close browser - keep it open for server's retry with healed code
+                            print(f"⏳ Browser kept open, waiting for server's AI-healed code retry...")
                             return  # Early return to avoid sending result twice
                     else:
-                        print(f"⚠️  Unknown healable error type: {error_type} - closing browser")
-                        # Send result for cases that don't use AI healing
+                        print(f"⚠️  Unknown healable error type: {error_type} - requesting AI healing")
+                        # Request AI healing for unknown error types too
+                        self.socket_client.emit('request_ai_healing', {
+                            'test_id': test_id,
+                            'error_type': error_type,
+                            'error_info': error_info,
+                            'attempt': attempt
+                        })
+                        # Send result for tracking
                         self.socket_client.emit('healing_attempt_result', {
                             'test_id': test_id,
                             'success': result.get('success', False),
                             'logs': result.get('logs', []),
                             'screenshot': screenshot_b64
                         })
-                        await self.cleanup_browser()
+                        # DON'T close browser - keep it open for server's retry with healed code
+                        print(f"⏳ Browser kept open, waiting for server's AI-healed code retry...")
+                        return
                 else:
                     print(f"ℹ️  No healable error detected (non-recoverable or success) - browser will close normally")
                     # Send result for cases that don't use AI healing

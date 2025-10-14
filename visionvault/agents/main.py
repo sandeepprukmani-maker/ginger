@@ -59,6 +59,21 @@ class VisionVaultAgent:
                     ),
                     self.socket_client.event_loop
                 )
+        
+        @self.socket_client.sio.on('healing_complete')
+        def handle_healing_complete(data):
+            """Handle healing completion - close browser and cleanup"""
+            test_id = data.get('test_id')
+            success = data.get('success', False)
+            reason = data.get('reason', 'unknown')
+            print(f"\n🏁 HEALING COMPLETE for test {test_id}")
+            print(f"   Success: {success}")
+            print(f"   Reason: {reason}")
+            if self.socket_client.event_loop:
+                asyncio.run_coroutine_threadsafe(
+                    self.healing_engine.cleanup_browser(),
+                    self.socket_client.event_loop
+                )
 
         @self.socket_client.sio.on('element_selector_needed')
         def handle_element_selector_needed(data):

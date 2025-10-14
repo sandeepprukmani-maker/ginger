@@ -1879,6 +1879,7 @@ def handle_ai_healing_request(data):
     error_type = data.get('error_type')
     error_info = data.get('error_info', {})
     attempt = data.get('attempt', 1)
+    agent_sid = request.sid  # Get the agent's session ID
     
     print(f"\n🤖 AI HEALING REQUEST:")
     print(f"  Test ID: {test_id}")
@@ -1886,19 +1887,86 @@ def handle_ai_healing_request(data):
     print(f"  Attempt: {attempt}")
     print(f"  Error Detail: {error_info.get('detail', error_info.get('full_error', 'N/A'))[:150]}")
     
-    # For now, log the request - the healing executor will handle automatic retry
-    # This allows the server to track AI healing attempts
-    if test_id in active_healing_executors:
+    # Get the original code from database
+    conn = sqlite3.connect(app.config['DATABASE_PATH'])
+    c = conn.cursor()
+    c.execute('SELECT generated_code, healed_code, browser, mode FROM test_history WHERE id=?', (test_id,))
+    row = c.fetchone()
+    
+    if not row:
+        print(f"  ❌ Test {test_id} not found in database")
+        conn.close()
+        return
+    
+    generated_code, existing_healed_code, browser, mode = row
+    current_code = existing_healed_code if existing_healed_code else generated_code
+    
+    # Get or create healing executor
+    if test_id not in active_healing_executors:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        healing_executor = HealingExecutor(socketio, api_key=openai_key, use_gpt4o=True)
+        healing_executor.agent_sid = agent_sid
+        active_healing_executors[test_id] = healing_executor
+    else:
         healing_executor = active_healing_executors[test_id]
-        # Mark this as an AI healing request that should trigger regeneration
-        healing_executor.ai_healing_requested = True
-        healing_executor.error_context = {
-            'type': error_type,
-            'info': error_info,
-            'attempt': attempt
-        }
-        print(f"  ✅ AI healing request registered for test {test_id}")
-        print(f"  💡 Healing executor will regenerate code with error context")
+        healing_executor.agent_sid = agent_sid
+    
+    # Extract error detail
+    error_detail = error_info.get('detail', error_info.get('full_error', 'Unknown error'))
+    failed_step = error_info.get('step', 0)
+    
+    # Check max retries (default 5 from HealingExecutor)
+    max_retries = healing_executor.max_retries
+    if attempt >= max_retries:
+        print(f"  ⚠️ Max healing attempts ({max_retries}) reached, marking as failed")
+        c.execute('UPDATE test_history SET status=? WHERE id=?', ('failed', test_id))
+        conn.commit()
+        conn.close()
+        # Notify agent to close browser
+        socketio.emit('healing_complete', {
+            'test_id': test_id,
+            'success': False,
+            'reason': 'max_retries_reached'
+        }, to=agent_sid)
+        return
+    
+    # Use AI to regenerate the code
+    print(f"  🔄 Regenerating code with AI (attempt {attempt}/{max_retries})...")
+    healed_code = healing_executor.regenerate_code_with_ai(
+        current_code,
+        error_detail,
+        failed_step,
+        attempt
+    )
+    
+    if healed_code and healed_code != current_code:
+        # Save healed code to database
+        c.execute('UPDATE test_history SET healed_code=? WHERE id=?', (healed_code, test_id))
+        conn.commit()
+        print(f"  ✅ AI regenerated code saved to database ({len(healed_code)} chars)")
+        
+        # Send healed code back to agent for retry
+        socketio.emit('execute_healing_attempt', {
+            'test_id': test_id,
+            'code': healed_code,
+            'browser': browser,
+            'mode': mode,
+            'attempt': attempt + 1
+        }, to=agent_sid)
+        print(f"  🚀 Sent healed code to agent for retry (attempt {attempt + 1}/{max_retries})")
+    else:
+        print(f"  ⚠️ AI regeneration failed or produced same code")
+        # Mark as failed in database
+        c.execute('UPDATE test_history SET status=? WHERE id=?', ('failed', test_id))
+        conn.commit()
+        # Notify agent to close browser
+        socketio.emit('healing_complete', {
+            'test_id': test_id,
+            'success': False,
+            'reason': 'regeneration_failed'
+        }, to=agent_sid)
+    
+    conn.close()
 
 @socketio.on('healing_attempt_result')
 def handle_healing_attempt_result(data):
