@@ -1,0 +1,30 @@
+🧠 INTELLIGENT PRE-EXECUTION ANALYSIS...
+[2025-10-14 19:12:25 +0000] [1628] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+   Intent: Search for information
+   Complexity: medium
+   Confidence: 75%
+   Predicted issues: 1
+   Recommended strategies: 2
+
+📚 SELF-LEARNING RECOMMENDATIONS:
+   Predicted success rate: 0.0%
+   Recommended locators: 
+   Confidence: 70%
+[2025-10-14 19:12:26 +0000] [1628] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+⚠️  Semantic search failed: OpenAI API error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************cDIA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}, falling back to code generation
+
+🧠 INTELLIGENT PRE-EXECUTION ANALYSIS...
+[2025-10-14 19:12:26 +0000] [1628] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+⚠️  AI planning error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************cDIA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+   Intent: Search for information
+   Complexity: medium
+   Confidence: 70%
+   Predicted issues: 3
+   Recommended strategies: 3
+
+📚 SELF-LEARNING RECOMMENDATIONS:
+   Predicted success rate: 0.0%
+   Recommended locators: 
+   Confidence: 70%
+[2025-10-14 19:12:26 +0000] [1628] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+[2025-10-14 19:12:26 +0000] [1628] [INFO] 172.31.81.130 - - [14/Oct/2025:19:12:26 +0000] "POST /api/execute HTTP/1.1" 500 418 "https://a6a04095-778a-4202-9a2a-391eb0ab6435-00-71f20osfm2rp.worf.replit.dev/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"

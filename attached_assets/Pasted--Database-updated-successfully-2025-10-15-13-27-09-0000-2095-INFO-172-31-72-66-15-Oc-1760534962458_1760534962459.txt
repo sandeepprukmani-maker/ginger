@@ -1,0 +1,60 @@
+  ✅ Database updated successfully
+[2025-10-15 13:27:09 +0000] [2095] [INFO] 172.31.72.66 - - [15/Oct/2025:13:27:09 +0000] "GET /api/history HTTP/1.1" 200 2980 "https://4c3e1022-4327-43d6-838d-16b8eed5b45e-00-2j974pvktsmr0.kirk.replit.dev/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+[2025-10-15 13:27:09 +0000] [2095] [INFO] 172.31.72.66 - - [15/Oct/2025:13:27:09 +0000] "GET /uploads/screenshots/test_89.png HTTP/1.1" 200 0 "https://4c3e1022-4327-43d6-838d-16b8eed5b45e-00-2j974pvktsmr0.kirk.replit.dev/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+[2025-10-15 13:27:15 +0000] [2095] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+✅ AI generated improved code (2515 chars)
+  ✅ AI regenerated code saved to database (2515 chars)
+  🚀 Sent healed code to agent for retry (attempt 2/2)
+
+🤖 AI HEALING REQUEST:
+  Test ID: 89
+  Error Type: timeout
+  Attempt: 2
+  Error Detail: STEP 1: Navigated to Google Error at STEP 2: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("input[name=\"q\"]") to be v
+✅ Enhanced AI healing enabled (Advanced Validator + Multi-Strategy Healing + 2 attempts)
+  ⚠️ Max AI healing attempts (2) reached, triggering manual widget...
+  🎯 Sent manual healing trigger to agent (attempt 999 - final manual attempt)
+
+✅ ELEMENT SELECTED EVENT RECEIVED:
+  test_id: 89
+  selector: page.get_by_role("combobox", name="Search")
+  failed_locator: page.locator("input[name=\"q\"]")
+  ⚠️  Could not find failed locator 'page.locator("input[name=\"q\"]")' in code
+  💡 Trying fallback string replacement...
+  ❌ Cannot replace string with method call - skipping
+
+🔧 HEALING SCRIPT IN handle_element_selected:
+  Failed locator: 'page.locator("input[name=\"q\"]")'
+  Healed locator: 'page.get_by_role("combobox", name="Search")'
+  Replacement successful: False
+  Healed code length: 2415
+  ✅ Healed code saved to database for test 89
+
+🚀 TRIGGERING FINAL RETRY with user-selected locator...
+  Test ID: 89
+  Browser: chromium
+  Mode: headful
+  Agent SID from executor: BuT2m4V4N9mVFHZoAAAL
+  ✅ FINAL manual healing attempt triggered with healed code to agent BuT2m4V4N9mVFHZoAAAL
+
+✅ ELEMENT SELECTED EVENT RECEIVED:
+  test_id: 89
+  selector: page.get_by_role("combobox", name="Search")
+  failed_locator: page.get_by_role("textbox", name="Search")
+  ✅ Replaced full method call: 'page.get_by_role("textbox", name="Search")' -> 'page.get_by_role("combobox", name="Search")'
+
+🔧 HEALING SCRIPT IN handle_element_selected:
+  Failed locator: 'page.get_by_role("textbox", name="Search")'
+  Healed locator: 'page.get_by_role("combobox", name="Search")'
+  Replacement successful: True
+  Healed code length: 2416
+  ✅ Healed code saved to database for test 89
+
+🚀 TRIGGERING FINAL RETRY with user-selected locator...
+  Test ID: 89
+  Browser: chromium
+  Mode: headful
+  Agent SID from executor: BuT2m4V4N9mVFHZoAAAL
+  ✅ FINAL manual healing attempt triggered with healed code to agent BuT2m4V4N9mVFHZoAAAL
