@@ -1,0 +1,53 @@
+[2025-10-14 20:25:17 +0000] [3255] [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+✅ Enhanced AI healing enabled (Advanced Validator + Multi-Strategy Healing + 5 attempts)
+[2025-10-14 20:25:17 +0000] [3255] [INFO] 172.31.124.194 - - [14/Oct/2025:20:25:17 +0000] "POST /api/execute HTTP/1.1" 200 2347 "https://e75532c0-f205-44a6-a8d6-e00fd8ac456a-00-14igy6f0h8huu.riker.replit.dev/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Exception in thread Thread-48 (execute_agent_with_healing):
+Traceback (most recent call last):
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/runner/workspace/visionvault/web/app.py", line 961, in execute_agent_with_healing
+    result = loop.run_until_complete(_run_healing())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/nest_asyncio.py", line 98, in run_until_complete
+    return f.result()
+           ^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/futures.py", line 203, in result
+    raise self._exception.with_traceback(self._exception_tb)
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/tasks.py", line 277, in __step
+    result = coro.send(None)
+             ^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/visionvault/web/app.py", line 952, in _run_healing
+    return await healing_executor.execute_with_healing(code, browser, headless, test_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/visionvault/services/healing_executor.py", line 584, in execute_with_healing
+    result = await self._execute_single_attempt(current_code, browser_name, headless, test_id, attempt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/visionvault/services/healing_executor.py", line 831, in _execute_single_attempt
+    return await self._execute_on_agent(code, browser_name, headless, test_id, attempt_num, logs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/visionvault/services/healing_executor.py", line 477, in _execute_on_agent
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/tasks.py", line 489, in wait_for
+    return fut.result()
+           ^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/futures.py", line 203, in result
+    raise self._exception.with_traceback(self._exception_tb)
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/visionvault/services/healing_executor.py", line 478, in <lambda>
+    loop.run_in_executor(None, lambda: self.agent_result_async.get(timeout=timeout)),
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/gevent/event.py", line 332, in gevent._gevent_cevent.AsyncResult.get
+  File "src/gevent/event.py", line 359, in gevent._gevent_cevent.AsyncResult.get
+  File "src/gevent/_abstract_linkable.py", line 495, in gevent._gevent_c_abstract_linkable.AbstractLinkable._wait_core
+  File "src/gevent/_abstract_linkable.py", line 498, in gevent._gevent_c_abstract_linkable.AbstractLinkable._wait_core
+  File "src/gevent/_abstract_linkable.py", line 450, in gevent._gevent_c_abstract_linkable.AbstractLinkable._AbstractLinkable__wait_to_be_notified
+  File "src/gevent/_abstract_linkable.py", line 459, in gevent._gevent_c_abstract_linkable.AbstractLinkable._switch_to_hub
+  File "src/gevent/_greenlet_primitives.py", line 61, in gevent._gevent_c_greenlet_primitives.SwitchOutGreenletWithLoop.switch
+  File "src/gevent/_greenlet_primitives.py", line 65, in gevent._gevent_c_greenlet_primitives.SwitchOutGreenletWithLoop.switch
+  File "src/gevent/_gevent_c_greenlet_primitives.pxd", line 35, in gevent._gevent_c_greenlet_primitives._greenlet_switch
+gevent.timeout.Timeout: 180 seconds
