@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Automation AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #6c757d;
+    }
+
+    .status-dot.connected {
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .examples {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f0f4ff;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .examples h4 {
+      margin-bottom: 8px;
+      color: #667eea;
+    }
+
+    .examples ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .examples li {
+      padding: 4px 0;
+      color: #555;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .examples li:hover {
+      color: #667eea;
+    }
+
+    .examples li:before {
+      content: '→ ';
+      color: #667eea;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .results {
+      margin-top: 30px;
+    }
+
+    .step {
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      background: #f8f9fa;
+    }
+
+    .step-header {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .step.tool_call {
+      border-left-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .step.tool_result {
+      border-left-color: #28a745;
+      background: #f0fff4;
+    }
+
+    .step.error {
+      border-left-color: #dc3545;
+      background: #fff5f5;
+    }
+
+    .step.completion {
+      border-left-color: #ffc107;
+      background: #fffbf0;
+    }
+
+    .step-content {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #555;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎭 Browser Automation AI</h1>
+      <p>Tell the AI what to do in plain English - no coding required!</p>
+    </div>
+
+    <div class="card">
+      <div class="status" id="status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting to MCP server...</span>
+      </div>
+
+      <div class="input-group">
+        <label for="command">What would you like the browser to do?</label>
+        <textarea 
+          id="command" 
+          placeholder="Example: Go to Google and search for the weather in Paris"
+        ></textarea>
+        
+        <div class="examples">
+          <h4>Example Commands (click to try):</h4>
+          <ul>
+            <li onclick="setCommand(this.textContent.replace('→ ', ''))">Go to Google and search for artificial intelligence</li>
+            <li onclick="setCommand(this.textContent.replace('→ ', ''))">Navigate to GitHub and search for playwright</li>
+            <li onclick="setCommand(this.textContent.replace('→ ', ''))">Open news.ycombinator.com and show me the top story</li>
+            <li onclick="setCommand(this.textContent.replace('→ ', ''))">Go to Wikipedia and search for quantum computing</li>
+          </ul>
+        </div>
+      </div>
+
+      <button id="executeBtn" onclick="executeAutomation()">
+        Execute Automation
+      </button>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>AI is controlling the browser...</p>
+      </div>
+
+      <div class="results" id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        
+        if (data.status === 'connected') {
+          statusDot.classList.add('connected');
+          statusText.textContent = `Connected to MCP server (${data.tools} tools available)`;
+        } else {
+          statusDot.classList.remove('connected');
+          statusText.textContent = `Disconnected: ${data.error || 'Unknown error'}`;
+        }
+      } catch (error) {
+        document.getElementById('statusText').textContent = 'Failed to connect to server';
+      }
+    }
+
+    function setCommand(text) {
+      document.getElementById('command').value = text;
+    }
+
+    async function executeAutomation() {
+      const command = document.getElementById('command').value.trim();
+      
+      if (!command) {
+        alert('Please enter a command');
+        return;
+      }
+
+      const executeBtn = document.getElementById('executeBtn');
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+
+      executeBtn.disabled = true;
+      loading.classList.add('active');
+      results.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/automate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ command })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          results.innerHTML = '<h3 style="margin-bottom: 15px;">Automation Steps:</h3>';
+          
+          data.steps.forEach((step, index) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = `step ${step.type}`;
+            
+            let header = '';
+            let content = '';
+            
+            switch(step.type) {
+              case 'tool_call':
+                header = `Step ${index + 1}: Calling ${step.tool}`;
+                content = JSON.stringify(step.arguments, null, 2);
+                break;
+              case 'tool_result':
+                header = `Result from ${step.tool}`;
+                content = step.result;
+                break;
+              case 'error':
+                header = `Error in ${step.tool}`;
+                content = step.error;
+                break;
+              case 'completion':
+                header = 'Completed';
+                content = step.content;
+                break;
+            }
+            
+            stepDiv.innerHTML = `
+              <div class="step-header">${header}</div>
+              <div class="step-content">${content}</div>
+            `;
+            
+            results.appendChild(stepDiv);
+          });
+        } else {
+          results.innerHTML = `
+            <div class="step error">
+              <div class="step-header">Error</div>
+              <div class="step-content">${data.error || 'Unknown error occurred'}</div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        results.innerHTML = `
+          <div class="step error">
+            <div class="step-header">Request Failed</div>
+            <div class="step-content">${error.message}</div>
+          </div>
+        `;
+      } finally {
+        executeBtn.disabled = false;
+        loading.classList.remove('active');
+      }
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 10000);
+
+    document.getElementById('command').addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        executeAutomation();
+      }
+    });
+  </script>
+</body>
+</html>
