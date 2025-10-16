@@ -1,0 +1,42 @@
+{
+  "id": "test_alerts",
+  "name": "Alert Handling Test",
+  "description": "Test handling JavaScript alerts, confirms, and prompts",
+  "browser": "chrome",
+  "headless": false,
+  "steps": [
+    {
+      "action": "navigate",
+      "description": "Open alert demo page",
+      "target": "https://www.w3schools.com/js/tryit.asp?filename=tryjs_alert",
+      "timeout": 5000
+    },
+    {
+      "action": "snapshot",
+      "description": "Capture initial page",
+      "timeout": 2000
+    },
+    {
+      "action": "click",
+      "description": "Trigger alert",
+      "target": "Try it",
+      "timeout": 3000
+    },
+    {
+      "action": "handle_alert",
+      "description": "Accept the alert",
+      "alert_action": "accept",
+      "timeout": 2000
+    },
+    {
+      "action": "wait",
+      "description": "Wait after alert",
+      "timeout": 1000
+    },
+    {
+      "action": "snapshot",
+      "description": "Capture state after alert",
+      "timeout": 2000
+    }
+  ]
+}
