@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playwright Automation Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status.running {
+            background: #48bb78;
+            color: white;
+        }
+
+        .status.stopped {
+            background: #cbd5e0;
+            color: #4a5568;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .explanation {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .actions-list {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .actions-list h4 {
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .actions-list ul {
+            list-style-position: inside;
+            color: #4a5568;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .copy-btn {
+            background: #4299e1;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #3182ce;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Playwright Automation Generator</h1>
+            <p>Describe your automation task in natural language, and get executable Playwright code</p>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <label for="userInput">Describe your automation task:</label>
+                <textarea 
+                    id="userInput" 
+                    placeholder="Example: Go to example.com, click the login button, enter username 'test@example.com' and password 'password123', then click submit"
+                ></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="generateCode()">Generate Playwright Code</button>
+                <button class="btn btn-secondary" onclick="startServer()">Start MCP Server</button>
+                <button class="btn btn-danger" onclick="stopServer()">Stop MCP Server</button>
+                <span id="serverStatus" class="status stopped">Server Stopped</span>
+            </div>
+
+            <div id="output" class="output-section" style="display: none;">
+                <h3>Generated Code:</h3>
+                <div id="explanation" class="explanation"></div>
+                <div id="actions" class="actions-list"></div>
+                <div class="code-block" id="codeBlock"></div>
+                <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating code...</p>
+            </div>
+
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function generateCode() {
+            const userInput = document.getElementById('userInput').value;
+            
+            if (!userInput.trim()) {
+                alert('Please enter an automation task description');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/interpret', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                document.getElementById('explanation').textContent = data.explanation || 'Code generated successfully';
+                
+                if (data.actions && data.actions.length > 0) {
+                    const actionsList = document.getElementById('actions');
+                    actionsList.innerHTML = '<h4>Key Actions:</h4><ul>' + 
+                        data.actions.map(action => `<li>${action}</li>`).join('') + 
+                        '</ul>';
+                    actionsList.style.display = 'block';
+                } else {
+                    document.getElementById('actions').style.display = 'none';
+                }
+
+                document.getElementById('codeBlock').textContent = data.playwright_code || '# No code generated';
+                document.getElementById('output').style.display = 'block';
+            } catch (error) {
+                document.getElementById('error').textContent = 'Error: ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function startServer() {
+            try {
+                const response = await fetch('/api/server/start', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateServerStatus();
+            } catch (error) {
+                alert('Error starting server: ' + error.message);
+            }
+        }
+
+        async function stopServer() {
+            try {
+                const response = await fetch('/api/server/stop', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateServerStatus();
+            } catch (error) {
+                alert('Error stopping server: ' + error.message);
+            }
+        }
+
+        async function updateServerStatus() {
+            try {
+                const response = await fetch('/api/server/status');
+                const data = await response.json();
+                const statusElement = document.getElementById('serverStatus');
+                
+                if (data.status === 'running') {
+                    statusElement.textContent = 'Server Running';
+                    statusElement.className = 'status running';
+                } else {
+                    statusElement.textContent = 'Server Stopped';
+                    statusElement.className = 'status stopped';
+                }
+            } catch (error) {
+                console.error('Error checking server status:', error);
+            }
+        }
+
+        function copyCode() {
+            const codeBlock = document.getElementById('codeBlock');
+            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Check server status on page load
+        updateServerStatus();
+        setInterval(updateServerStatus, 5000);
+    </script>
+</body>
+</html>
