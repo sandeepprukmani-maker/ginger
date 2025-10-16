@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Browser Automation</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Browser Automation</h1>
+            <p>Describe what you want to automate, and I'll do it for you</p>
+        </header>
+
+        <div class="main-content">
+            <div class="prompt-section">
+                <h2>What would you like to automate?</h2>
+                <textarea id="promptInput" placeholder="Example: Go to Google, search for 'Playwright automation', and take a screenshot of the results"></textarea>
+                
+                <div class="options">
+                    <label>
+                        <input type="checkbox" id="headlessMode"> Run in background (headless)
+                    </label>
+                    <select id="browserSelect">
+                        <option value="chrome">Chrome</option>
+                        <option value="firefox">Firefox</option>
+                        <option value="webkit">WebKit</option>
+                    </select>
+                </div>
+
+                <button id="runButton" class="primary-btn">▶ Run Automation</button>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>Execution Results</h2>
+                <div id="statusIndicator" class="status"></div>
+                <div id="executionDetails"></div>
+                <div id="stepsContainer"></div>
+                
+                <div class="action-buttons">
+                    <button id="downloadCodeButton" class="secondary-btn">📥 Download Playwright Code</button>
+                    <button id="viewTestPlanButton" class="secondary-btn">📋 View Test Plan JSON</button>
+                    <button id="newAutomationButton" class="secondary-btn">🔄 New Automation</button>
+                </div>
+            </div>
+
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p>Running automation...</p>
+            </div>
+        </div>
+
+        <div class="examples-section">
+            <h3>Example Prompts:</h3>
+            <div class="example-cards">
+                <div class="example-card" onclick="fillPrompt(this.dataset.prompt)" data-prompt="Go to https://example.com and take a screenshot">
+                    📸 Simple Screenshot
+                </div>
+                <div class="example-card" onclick="fillPrompt(this.dataset.prompt)" data-prompt="Navigate to Google, search for 'AI automation', click the first result, and take a screenshot">
+                    🔍 Google Search
+                </div>
+                <div class="example-card" onclick="fillPrompt(this.dataset.prompt)" data-prompt="Go to GitHub, search for 'playwright', and capture the trending repositories">
+                    💻 GitHub Search
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

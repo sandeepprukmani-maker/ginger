@@ -1,0 +1,54 @@
+{
+  "id": "test_multi_tab",
+  "name": "Multi-Tab Navigation Test",
+  "description": "Test opening new tabs and switching between them",
+  "browser": "chrome",
+  "headless": false,
+  "steps": [
+    {
+      "action": "navigate",
+      "description": "Open main page",
+      "target": "https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_link_target",
+      "timeout": 5000
+    },
+    {
+      "action": "snapshot",
+      "description": "Capture initial page state",
+      "timeout": 2000
+    },
+    {
+      "action": "click",
+      "description": "Click link that opens new tab",
+      "target": "Visit W3Schools",
+      "timeout": 3000
+    },
+    {
+      "action": "wait_for_new_tab",
+      "description": "Wait for new tab to open",
+      "timeout": 3000
+    },
+    {
+      "action": "switch_tab",
+      "description": "Switch to the new tab",
+      "tab_index": 1,
+      "timeout": 2000
+    },
+    {
+      "action": "snapshot",
+      "description": "Capture new tab state",
+      "timeout": 2000
+    },
+    {
+      "action": "switch_tab",
+      "description": "Switch back to first tab",
+      "tab_index": 0,
+      "timeout": 2000
+    },
+    {
+      "action": "close_tab",
+      "description": "Close the second tab",
+      "tab_index": 1,
+      "timeout": 2000
+    }
+  ]
+}
