@@ -1,0 +1,28 @@
+2025-10-16 11:14:16,061 - dom_analyzer - DEBUG - Snapshot data keys: ['result', 'jsonrpc', 'id']
+2025-10-16 11:14:16,062 - dom_analyzer - DEBUG - Found content in result, type: <class 'list'>, length: 1
+2025-10-16 11:14:16,062 - dom_analyzer - DEBUG - First item keys: ['type', 'text']
+2025-10-16 11:14:16,062 - dom_analyzer - DEBUG - First item sample: {'type': 'text', 'text': '### Result\nError: browserType.launchPersistentContext: Chromium distribution \'chrome\' is not found at /opt/google/chrome/chrome\nRun "npx playwright install chrome"\n'}
+2025-10-16 11:14:16,062 - dom_analyzer - INFO - DOM Analysis complete: 1 elements indexed
+2025-10-16 11:14:16,062 - test_executor - INFO - DOM analyzed: 1 elements indexed
+2025-10-16 11:14:16,062 - test_executor - INFO - Executing step 2: type - Enter username into Username field
+2025-10-16 11:14:16,063 - locator_selector - WARNING - No candidates found for: the Username field
+2025-10-16 11:14:16,063 - test_executor - INFO - Retry attempt 2 for: the Username field
+2025-10-16 11:14:18,063 - mcp_client - INFO - MCP: Capturing accessibility snapshot
+2025-10-16 11:14:18,067 - dom_analyzer - DEBUG - Snapshot data keys: ['result', 'jsonrpc', 'id']
+2025-10-16 11:14:18,068 - dom_analyzer - DEBUG - Found content in result, type: <class 'list'>, length: 1
+2025-10-16 11:14:18,068 - dom_analyzer - DEBUG - First item keys: ['type', 'text']
+2025-10-16 11:14:18,068 - dom_analyzer - DEBUG - First item sample: {'type': 'text', 'text': '### Result\nError: browserType.launchPersistentContext: Chromium distribution \'chrome\' is not found at /opt/google/chrome/chrome\nRun "npx playwright install chrome"\n'}
+2025-10-16 11:14:18,068 - dom_analyzer - INFO - DOM Analysis complete: 1 elements indexed
+2025-10-16 11:14:18,068 - locator_selector - WARNING - No candidates found for: the Username field
+2025-10-16 11:14:18,068 - test_executor - INFO - Retry attempt 3 for: the Username field
+2025-10-16 11:14:20,069 - mcp_client - INFO - MCP: Capturing accessibility snapshot
+2025-10-16 11:14:20,079 - dom_analyzer - DEBUG - Snapshot data keys: ['result', 'jsonrpc', 'id']
+2025-10-16 11:14:20,080 - dom_analyzer - DEBUG - Found content in result, type: <class 'list'>, length: 1
+2025-10-16 11:14:20,080 - dom_analyzer - DEBUG - First item keys: ['type', 'text']
+2025-10-16 11:14:20,080 - dom_analyzer - DEBUG - First item sample: {'type': 'text', 'text': '### Result\nError: browserType.launchPersistentContext: Chromium distribution \'chrome\' is not found at /opt/google/chrome/chrome\nRun "npx playwright install chrome"\n'}
+2025-10-16 11:14:20,080 - dom_analyzer - INFO - DOM Analysis complete: 1 elements indexed
+2025-10-16 11:14:20,081 - locator_selector - WARNING - No candidates found for: the Username field
+2025-10-16 11:14:20,081 - test_executor - ERROR - Step 2 failed: Could not find element: the Username field
+2025-10-16 11:14:20,081 - test_executor - ERROR - Execution failed: Could not find element: the Username field
+2025-10-16 11:14:20,081 - mcp_client - INFO - Stopping MCP server
+2025-10-16 11:14:20,083 - werkzeug - INFO - 172.31.67.226 - - [16/Oct/2025 11:14:20] "POST /api/execute HTTP/1.1" 500 -

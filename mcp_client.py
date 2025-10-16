@@ -90,28 +90,28 @@ class MCPClient:
     def click(self, locator: str) -> Dict[str, Any]:
         logger.info(f"MCP: Clicking element: {locator}")
         return self.send_mcp_request("tools/call", {
-            "name": "page_click",
-            "arguments": {"locator": locator}
+            "name": "browser_click",
+            "arguments": {"ref": locator}
         })
     
     def type_text(self, locator: str, text: str) -> Dict[str, Any]:
         logger.info(f"MCP: Typing into element: {locator}")
         return self.send_mcp_request("tools/call", {
-            "name": "page_type",
-            "arguments": {"locator": locator, "text": text}
+            "name": "browser_fill",
+            "arguments": {"ref": locator, "value": text}
         })
     
     def get_accessibility_snapshot(self) -> Dict[str, Any]:
         logger.info("MCP: Capturing accessibility snapshot")
         return self.send_mcp_request("tools/call", {
-            "name": "page_snapshot",
+            "name": "browser_snapshot",
             "arguments": {}
         })
     
     def take_screenshot(self, path: str) -> Dict[str, Any]:
         logger.info(f"MCP: Taking screenshot: {path}")
         return self.send_mcp_request("tools/call", {
-            "name": "page_screenshot",
+            "name": "browser_screenshot",
             "arguments": {"path": path}
         })
     

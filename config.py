@@ -8,7 +8,7 @@ class Config:
     FLASK_PORT = 5000
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
     
-    MCP_BROWSER = os.getenv("MCP_BROWSER", "chrome")
+    MCP_BROWSER = os.getenv("MCP_BROWSER", "chromium")
     MCP_HEADLESS = os.getenv("MCP_HEADLESS", "false").lower() == "true"
     MCP_DEVICE = os.getenv("MCP_DEVICE", "")
     

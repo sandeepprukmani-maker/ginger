@@ -14,11 +14,29 @@ class DOMAnalyzer:
         self.elements.clear()
         self.element_counter = 0
         
-        if not snapshot_data or "result" not in snapshot_data:
-            logger.warning("Invalid snapshot data received")
+        if not snapshot_data:
+            logger.warning("Invalid snapshot data received: empty data")
             return 0
         
-        tree_data = snapshot_data.get("result", {})
+        logger.debug(f"Snapshot data keys: {list(snapshot_data.keys())}")
+        
+        if "result" in snapshot_data:
+            result = snapshot_data.get("result", {})
+            if isinstance(result, dict) and "content" in result:
+                tree_data = result.get("content", [])
+                logger.debug(f"Found content in result, type: {type(tree_data)}, length: {len(tree_data) if isinstance(tree_data, list) else 'N/A'}")
+                if isinstance(tree_data, list) and len(tree_data) > 0:
+                    logger.debug(f"First item keys: {list(tree_data[0].keys()) if isinstance(tree_data[0], dict) else type(tree_data[0])}")
+                    logger.debug(f"First item sample: {str(tree_data[0])[:500]}")
+            elif isinstance(result, list):
+                tree_data = result
+                logger.debug(f"Result is list with {len(result)} items")
+            else:
+                tree_data = result
+                logger.debug(f"Result type: {type(result)}")
+        else:
+            logger.warning("No 'result' key in snapshot data")
+            return 0
         
         if isinstance(tree_data, dict):
             self._parse_node(tree_data, depth=0, parent_id=None, xpath="/")

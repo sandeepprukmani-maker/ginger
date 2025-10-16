@@ -87,6 +87,12 @@ def convert_prompt():
         })
         
     except Exception as e:
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in convert_prompt: {str(e)}")
+        logger.error(traceback.format_exc())
+        
         error_msg = str(e)
         if "api_key" in error_msg.lower():
             return jsonify({"error": "OpenAI API key is invalid or missing. Please check your API key."}), 401

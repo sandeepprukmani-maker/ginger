@@ -6,7 +6,7 @@ from models import TestPlan, TestStep
 
 class AIPromptConverter:
     def __init__(self):
-        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        self.client = OpenAI(api_key='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')
     
     def convert_prompt_to_test_plan(self, prompt: str, browser: str = "chrome", headless: bool = False) -> TestPlan:
         """Convert natural language prompt to structured test plan"""
@@ -17,12 +17,19 @@ The test plan should include:
 1. A sequence of steps to accomplish the task
 2. Each step should have: action, description, and appropriate parameters
 
-Available actions:
+Available actions (ONLY USE THESE):
 - navigate: Go to a URL (use 'target' for the URL)
 - click: Click an element (use 'target' for element description)
 - type: Type text into an input (use 'target' for element, 'value' for text to type)
 - wait: Wait for element or time (use 'target' for element or 'timeout' for milliseconds)
 - snapshot: Take a screenshot (description only)
+- handle_alert: Handle browser alerts (use 'alert_action' with 'accept' or 'dismiss')
+- switch_tab: Switch to a different browser tab (use 'tab_index' for tab number)
+- wait_for_new_tab: Wait for a new tab to open
+- close_tab: Close the current tab
+- get_alert_text: Get text from an alert
+
+IMPORTANT: Do NOT use any other actions like 'assert', 'verify', 'check', etc. Only use the actions listed above.
 
 For targets, use natural language descriptions like:
 - "the search button"
