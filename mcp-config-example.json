@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "playwright-automation": {
+      "command": "node",
+      "args": ["mcp-server/build/index.js"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key-here"
+      }
+    }
+  }
+}

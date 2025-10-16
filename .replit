@@ -5,7 +5,7 @@ integrations = ["python_openai:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["gitFull", "playwright-driver"]
+packages = ["gitFull", "playwright-driver", "alsa-lib", "at-spi2-atk", "cups", "libdrm", "mesa", "nspr", "nss", "pango", "xorg.libxcb", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXfixes", "libxkbcommon"]
 
 [workflows]
 runButton = "Project"
@@ -23,20 +23,16 @@ args = "MCP Automation UI"
 name = "MCP Automation UI"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python web_ui.py"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
 
-[[ports]]
-localPort = 5000
-externalPort = 80
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python web_ui_mcp.py"
+waitForPort = 5000
 
 [[ports]]
-localPort = 40223
+localPort = 5000
 externalPort = 80
 
 [[ports]]

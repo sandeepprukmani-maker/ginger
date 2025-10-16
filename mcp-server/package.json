@@ -1,0 +1,28 @@
+{
+  "name": "playwright-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Playwright Browser Automation",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "playwright-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js"
+  },
+  "keywords": ["mcp", "playwright", "automation", "browser"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "playwright": "^1.57.0-alpha",
+    "zod": "^3.24.2",
+    "openai": "^4.80.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}

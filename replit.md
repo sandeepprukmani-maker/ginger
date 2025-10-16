@@ -10,67 +10,79 @@ Preferred communication style: Simple, everyday language.
 
 ## Core Components
 
-**MCP Server Architecture**
-- Implements the Model Context Protocol to expose Playwright browser automation capabilities as MCP tools
-- Built as an npm package (`@playwright/mcp`) that can be installed and run as a CLI tool via `mcp-server-playwright`
-- Uses Playwright's alpha version (1.57.0-alpha) for cutting-edge browser automation features
-- Designed to work with MCP clients (like Claude Desktop) to enable AI-driven browser control
+**MCP Server (Node.js/TypeScript)**
+- Full Model Context Protocol implementation using `@modelcontextprotocol/sdk`
+- Stdio-based JSON-RPC transport for communication with MCP clients
+- Session manager for Playwright browser lifecycle (Chromium headless)
+- 8 MCP tools: health_check, navigate, click, fill, get_text, get_all_text, screenshot, plan_and_execute
+- Located in `/mcp-server` directory with TypeScript source and compiled build
+- Can be used with Claude Desktop, Python clients, or any MCP-compatible client
 
-**Automation Engine Design**
-- `PlaywrightAutomationEngine` class handles actual browser automation execution
-- Supports multiple browser actions: navigate, click, fill forms, screenshot capture, etc.
-- Headless browser mode by default for efficient automation
-- Async/await pattern throughout for non-blocking operations
+**Automation Tools**
+- `playwright_navigate`: Navigate to URLs with networkidle wait
+- `playwright_click`: Click elements using CSS, text (text=Button), or role selectors
+- `playwright_fill`: Fill text into input fields
+- `playwright_get_text`: Extract text from single element
+- `playwright_get_all_text`: Extract text from multiple matching elements
+- `playwright_screenshot`: Capture page screenshots (supports fullPage option)
+- `playwright_plan_and_execute`: AI-powered automation planning and execution
+
+**AI Planning Engine**
+- OpenAI GPT-4 integration for natural language to automation translation
+- Fallback heuristic-based planning when OpenAI API key not available
+- Analyzes user prompts and generates executable Playwright action sequences
+- Supports complex multi-step automations from simple descriptions
 
 **Web Interface Layer**
-- Flask-based web UI (`web_ui.py`) provides a visual interface for the automation engine
-- Persistent event loop running in a separate thread to handle async operations from Flask's sync context
-- Global MCP app instance initialized once and reused across requests
-- Coroutine execution bridge (`run_coroutine`) to safely execute async code from sync Flask routes
-
-**AI Integration Pattern**
-- OpenAI client integration for translating natural language to browser actions
-- Tool/function calling pattern to map AI decisions to Playwright commands
-- Environment variable based API key configuration
+- Flask-based web UI (`web_ui_mcp.py`) with MCP client integration
+- Python MCP client (`mcp_client.py`) communicates with Node MCP server via subprocess stdio
+- Persistent event loop in separate thread for async MCP communication
+- JSON-RPC request/response handling for tool invocation
+- Real-time automation execution with results streaming
 
 ## Technology Stack
 
-**Backend Runtime**
-- Node.js (>=18) for the MCP server component
-- Python with asyncio for the automation engine and web interface
-- Flask for HTTP server functionality
+**MCP Server (Node.js)**
+- Node.js 18+ runtime
+- TypeScript for type-safe development
+- `@modelcontextprotocol/sdk` for MCP protocol
+- Playwright 1.57.0-alpha for browser automation
+- OpenAI SDK for AI planning
+- Zod for parameter validation
+
+**Web UI (Python)**
+- Python 3.11 with asyncio
+- Flask web framework
+- Custom MCP client for stdio communication
+- Subprocess management for MCP server lifecycle
 
 **Browser Automation**
-- Playwright as the core automation framework
-- Supports Chromium, Firefox, and WebKit browsers
-- Alpha version tracking with automated config updates from upstream Playwright
-
-**Development Workflow**
-- Multiple test configurations (Chrome, Firefox, WebKit, Docker)
-- Automated README updates via npm scripts
-- Docker support for containerized testing
+- Playwright Chromium (headless mode)
+- Supports CSS selectors, text selectors (text=), and role-based selectors
+- Screenshot capture with base64 encoding
+- Network idle detection for page loads
 
 # External Dependencies
 
-**Primary Dependencies**
-- `playwright` and `playwright-core` (1.57.0-alpha): Core browser automation
-- `@modelcontextprotocol/sdk`: MCP protocol implementation
-- `@playwright/test`: Testing framework for browser automation tests
+**Node.js Dependencies**
+- `@modelcontextprotocol/sdk` (1.0.4+): MCP protocol implementation
+- `playwright` (1.57.0-alpha): Browser automation framework
+- `openai` (4.80.0+): AI-powered automation planning
+- `zod` (3.24.2+): Runtime type validation
+- `typescript` (5.7.3+): TypeScript compiler
 
-**AI/ML Services**
-- OpenAI API: Required for natural language to automation translation
-- API key configured via `OPENAI_API_KEY` environment variable
+**Python Dependencies**
+- `flask` (3.1.2+): Web server for UI
+- `openai` (2.3.0+): Python OpenAI client (legacy engine)
+- `playwright` (1.55.0+): Python Playwright for legacy engine
+- `requests` (2.32.5+): HTTP client
 
-**Web Framework**
-- Flask: Python web server for UI
-- Standard Flask templating for HTML rendering
+**System Dependencies**
+- Chromium browser binaries (via Playwright)
+- System libraries: alsa-lib, at-spi2-atk, cups, libdrm, mesa, nspr, nss, pango, xorg libraries
 
-**Development Tools**
-- Zod with JSON Schema conversion for type validation and API contracts
-- TypeScript type definitions (@types/node) for Node.js development
-- Docker for containerized testing environments
-
-**Testing Infrastructure**
-- Multiple browser test profiles (Chrome, Firefox, WebKit)
-- Docker-based testing with MCP_IN_DOCKER environment flag
-- Playwright Test as the test runner
+**Configuration Files**
+- `/mcp-server/package.json`: Node.js MCP server dependencies
+- `/mcp-server/tsconfig.json`: TypeScript compiler configuration
+- `/pyproject.toml`: Python project dependencies
+- `/mcp-config-example.json`: Example Claude Desktop MCP configuration

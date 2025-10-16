@@ -2,14 +2,13 @@ import os
 import asyncio
 import threading
 from flask import Flask, render_template, request, jsonify
-from through_app import MCPAutomationApp
+from mcp_client import MCPClient
 
 app = Flask(__name__)
 
-# Global event loop and MCP app instance
 global_loop = None
 loop_thread = None
-mcp_app = None
+mcp_client = None
 initialized = False
 
 def run_event_loop(loop):
@@ -29,17 +28,14 @@ def get_or_create_loop():
     return global_loop
 
 async def init_mcp_async():
-    """Initialize MCP app - runs once"""
-    global mcp_app, initialized
+    """Initialize MCP client - runs once"""
+    global mcp_client, initialized
     
     if not initialized:
-        mcp_app = MCPAutomationApp()
-        openai_key = os.getenv('OPENAI_API_KEY')
-        success = await mcp_app.initialize(openai_key)
-        if success:
-            initialized = True
-            return True
-        return False
+        mcp_client = MCPClient()
+        await mcp_client.start()
+        initialized = True
+        return True
     return True
 
 def run_coroutine(coro):
@@ -54,7 +50,7 @@ def index():
 
 @app.route('/api/automate', methods=['POST'])
 def automate():
-    """Run automation based on user prompt"""
+    """Run automation using MCP server"""
     data = request.json
     url = data.get('url', '').strip()
     prompt = data.get('prompt', '').strip()
@@ -63,23 +59,20 @@ def automate():
         return jsonify({"error": "URL and prompt are required"}), 400
     
     try:
-        # Initialize MCP if needed
         if not initialized:
-            success = run_coroutine(init_mcp_async())
-            if not success:
-                return jsonify({"error": "Failed to initialize browser"}), 500
+            run_coroutine(init_mcp_async())
         
-        # Run automation on the global event loop
         result = run_coroutine(
-            mcp_app.process_automation_request(url, prompt, generate_code=True)
+            mcp_client.call_tool('playwright_plan_and_execute', {
+                'url': url,
+                'prompt': prompt
+            })
         )
         
         return jsonify({
-            "success": result["success"],
-            "actions": result["actions"],
-            "generated_code": result.get("generated_code", ""),
-            "code_file": result.get("code_file", ""),
-            "results": result["results"]
+            "success": result.get("success", False),
+            "actions": result.get("actions", []),
+            "results": result.get("results", [])
         })
         
     except Exception as e:
@@ -89,20 +82,33 @@ def automate():
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    """Check if system is ready"""
-    return jsonify({
-        "status": "ready", 
-        "openai_configured": bool(os.getenv('OPENAI_API_KEY')),
-        "browser_initialized": initialized
-    })
+    """Check if MCP server is ready"""
+    try:
+        if not initialized:
+            run_coroutine(init_mcp_async())
+        
+        result = run_coroutine(
+            mcp_client.call_tool('playwright_health_check', {})
+        )
+        
+        return jsonify({
+            "status": "ready",
+            "mcp_server": result,
+            "openai_configured": bool(os.getenv('OPENAI_API_KEY'))
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
 
 def cleanup():
     """Cleanup resources on shutdown"""
-    global global_loop, mcp_app, initialized
+    global global_loop, mcp_client, initialized
     
-    if mcp_app and initialized:
+    if mcp_client and initialized:
         try:
-            asyncio.run_coroutine_threadsafe(mcp_app.cleanup(), global_loop).result(timeout=5)
+            asyncio.run_coroutine_threadsafe(mcp_client.stop(), global_loop).result(timeout=5)
         except:
             pass
     
