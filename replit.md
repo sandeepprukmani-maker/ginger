@@ -1,168 +1,88 @@
-# Playwright MCP Server
+# VisionVault - AI-Powered Browser Automation
 
 ## Overview
-This is the **Playwright MCP (Model Context Protocol)** server - a tool that provides browser automation capabilities for LLMs and AI assistants. It enables AI to interact with web pages through structured accessibility snapshots, without requiring screenshots or vision models.
+VisionVault is an intelligent browser automation platform that uses AI to create, execute, and heal web automation tests. The system leverages Playwright for browser automation and integrates with OpenAI and Google Gemini for intelligent code generation and semantic search capabilities.
 
-**Last Updated**: October 15, 2025
+## Project Architecture
 
-## Project Type
-- **Primary**: CLI tool and Node.js library
-- **Secondary**: Chrome/Edge browser extension (optional)
+### Core Components
+- **Web Application** (`visionvault/web/`): Flask-based web server with Socket.IO for real-time communication
+- **Agents** (`visionvault/agents/`): Browser automation agents that connect to the server and execute tests
+- **Services** (`visionvault/services/`): Core automation services including:
+  - Intelligent Planner: Pre-execution analysis and risk assessment
+  - Self-Learning Engine: Learns from past executions to improve success rates
+  - Healing Engine: Automatically fixes failing tests using AI
+  - DOM Inspector: Analyzes web pages for optimal locator selection
+  - Vector Store: Semantic search for similar learned tasks
+- **Core Models** (`visionvault/core/`): Database models and data structures
+
+### Technology Stack
+- **Backend**: Python 3.11, Flask, Flask-SocketIO, Gunicorn
+- **Browser Automation**: Playwright
+- **AI/ML**: OpenAI GPT-4, Google Gemini, scikit-learn, FAISS
+- **Database**: SQLite (development), PostgreSQL ready
+- **Frontend**: Bootstrap 5, vanilla JavaScript
+
+## Setup and Running
+
+### Entry Points
+1. **Web Server**: `python run_server.py` - Starts the Flask web application on port 5000
+2. **Agent**: `python run_agent.py` - Starts the automation agent that connects to the server
+3. **Both**: `python scripts/run_both.py` - Runs both server and agent together
+
+### Required Environment Variables
+- `OPENAI_API_KEY` (optional): For AI code generation and intelligent planning
+- `GEMINI_API_KEY` (optional): For semantic search and embeddings
+- `SESSION_SECRET` (optional): Flask session secret (auto-generated if not set)
+
+### Database
+- Uses SQLite by default (`data/automation.db`)
+- Tables:
+  - `test_history`: Execution history and test results
+  - `learned_tasks`: Persistent learning knowledge base
+  - `task_executions`: Execution feedback loop
 
 ## Key Features
-- Fast and lightweight browser automation using Playwright's accessibility tree
-- LLM-friendly structured data (no vision models needed)
-- Deterministic tool application
-- Can run as MCP server via stdio or HTTP transport
-- Optional browser extension for connecting to existing browser tabs
-
-## Project Structure
-```
-.
-├── cli.js                  # Main CLI entry point
-├── index.js                # Library entry point (exports createConnection)
-├── package.json            # Main project dependencies
-├── extension/              # Browser extension (React + Vite)
-│   ├── src/
-│   │   ├── ui/            # React UI components
-│   │   └── background.ts  # Extension background script
-│   ├── dist/              # Built extension (generated)
-│   └── package.json       # Extension dependencies
-└── tests/                 # Playwright tests
-
-```
-
-## Dependencies
-- **Runtime**: Node.js 18+
-- **Main**: playwright, playwright-core
-- **Dev**: @playwright/test, @modelcontextprotocol/sdk
-- **Extension**: React, Vite, TypeScript
-
-## Setup on Replit
-The project has been set up with all dependencies installed:
-- Main project dependencies installed via `npm install`
-- Extension dependencies installed via `npm install` in extension/
-- Extension built and ready in `extension/dist/`
-
-## Running the Project
-
-### As MCP Server (HTTP Mode) - Active Workflow
-The MCP server is currently running in HTTP mode on port 8080:
-```bash
-node cli.js --headless --browser chromium --port 8080 --host 0.0.0.0
-```
-
-The server is accessible at:
-- **MCP Endpoint**: `http://localhost:8080/mcp`
-- **SSE Endpoint**: `http://localhost:8080/sse` (legacy)
-
-This allows MCP clients to connect via HTTP transport instead of stdio.
-
-### As CLI Tool
-The primary use case is as a CLI tool invoked by MCP clients:
-```bash
-npx @playwright/mcp@latest [options]
-```
-
-### Available Commands
-- `npm test` - Run Playwright tests
-- `npm run ctest` - Run Chrome tests only
-- `npm run lint` - Update README
-
-### Extension Build
-- `cd extension && npm run build` - Build browser extension
-- `cd extension && npm run watch` - Watch mode for development
-
-## Configuration
-The server supports extensive configuration via CLI arguments or config file:
-- `--browser`: Browser type (chrome, firefox, webkit, msedge)
-- `--headless`: Run in headless mode
-- `--port`: Enable HTTP transport on specified port
-- `--host`: Bind server to host (default: localhost)
-- `--config`: Path to JSON configuration file
-- See `node cli.js --help` for full options
-
-## Usage in MCP Clients
-Configure in MCP clients (VS Code, Claude Desktop, etc.):
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
-}
-```
-
-## Browser Extension
-The Chrome/Edge extension is located in `extension/dist/` after building. It allows connecting the MCP server to existing browser tabs with your logged-in sessions.
-
-Installation:
-1. Open `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select `extension/dist/` directory
-
-## Development Notes
-- This is primarily a **CLI tool**, not a web application
-- The HTTP server mode (with --port) is mainly for standalone deployments
-- Tests use Playwright Test framework
-- Extension uses Vite for building React components
-
-## Testing the Server
-You can test the MCP server is running:
-```bash
-curl http://localhost:8080/mcp
-# Should return "Invalid request" (expected for simple GET)
-```
-
-For MCP clients to connect, they need to use the JSON-RPC protocol over HTTP.
-
-## Browser Automation Web App
-
-A new web application has been built on top of Playwright MCP that allows you to control browsers using natural language!
-
-### What It Does
-- Type commands in plain English (no coding, no locators needed)
-- AI (GPT-4) interprets your commands
-- Browser automatically executes the tasks
-- See step-by-step results in real-time
-
-### Architecture
-```
-User (Browser) 
-    ↓ (natural language command)
-Frontend (port 5000) 
-    ↓ (HTTP API)
-Backend Server (app/server.js)
-    ↓ (OpenAI API - interprets command)
-    ↓ (MCP protocol)
-MCP Server (port 8080)
-    ↓ (Playwright automation)
-Chromium Browser (headless)
-```
-
-### Files Added
-- `app/server.js` - Express backend that connects OpenAI + MCP
-- `app/public/index.html` - Beautiful UI for entering commands
-- `start.sh` - Startup script that runs both servers
-
-### Example Commands
-- "Go to Google and search for artificial intelligence"
-- "Navigate to GitHub and search for playwright"
-- "Open news.ycombinator.com and show me the top story"
-- "Go to Wikipedia and search for quantum computing"
-
-### How to Use
-1. Open the Replit preview (port 5000)
-2. Type a command in plain English
-3. Click "Execute Automation"
-4. Watch the AI control the browser for you!
+1. **Natural Language to Code**: Convert commands to executable Playwright code
+2. **Self-Healing Tests**: Automatically repair failing tests using multiple strategies
+3. **Intelligent Planning**: Pre-execution analysis to predict and prevent failures
+4. **Learning System**: Continuously improves from past executions
+5. **Recording Sessions**: Capture user interactions to generate automation scripts
+6. **DOM Intelligence**: Real-time page analysis for optimal element selection
 
 ## Recent Changes
-- October 15, 2025: Initial Replit setup
-  - Installed all dependencies for main project and browser extension
-  - Built browser extension (available in `extension/dist/`)
-  - Created Browser Automation Web App with OpenAI integration
-  - Configured workflow running both MCP server (8080) and web app (5000)
-  - App accessible at the Replit preview URL
+- **2025-10-15**: Critical bug fixes and enhancements
+  - **Data Contract Fix**: Fixed schema mismatch between DOMInspector and AdvancedLocatorValidator
+    - DOMInspector now outputs camelCase keys (testId, ariaLabel, tag) matching validator expectations
+    - Added missing 'tag' field to prevent KeyError crashes
+  - **Safe Access Implementation**: AdvancedLocatorValidator now uses .get() for all field access
+    - Prevents crashes when optional fields are missing
+    - Added sensible defaults for all locator strategies
+  - **Multi-Strategy Healing**: Implemented actual parallel strategy execution
+    - Multi-strategy healing now executes on attempt 3 (previously just declared)
+    - Tests multiple healing strategies in parallel and selects the best one
+    - Comprehensive error handling for strategy failures
+  - **Concurrency Fix**: Resolved gevent/asyncio mixing issues
+    - Pure asyncio implementation with proper Event handling
+    - Added result buffering for early agent responses
+    - Thread-safe event signaling with event loop stored at initialization
+  - **Error Handling**: Added comprehensive exception handling
+    - MultiStrategyHealer gracefully handles strategy failures
+    - Safe unpacking of results with fallback mechanisms
+
+- **2025-10-15**: Initial import to Replit environment
+  - Configured Python 3.11 environment
+  - Installed all dependencies via pip
+  - Installed Playwright with Chromium browser
+  - Installed system dependencies for browser automation
+  - Created data directories structure
+  - Set up .gitignore for Python project
+
+## User Preferences
+(No user preferences recorded yet)
+
+## Development Notes
+- The application serves on port 5000 (required for Replit environment)
+- Gunicorn is configured with gevent worker for Socket.IO compatibility
+- The frontend communicates via WebSocket for real-time updates
+- Screenshots and logs are stored in `data/uploads/`

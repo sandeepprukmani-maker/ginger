@@ -1,9 +1,10 @@
-modules = ["nodejs-18", "web"]
+modules = ["web", "python-3.11"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
+packages = ["freetype", "gitFull", "glibcLocales", "iana-etc", "lcms2", "libev", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "playwright-driver", "tcl", "tk", "zlib", "glib", "nss", "nspr", "atk", "at-spi2-atk", "cups", "libxkbcommon", "at-spi2-core", "mesa", "cairo", "pango", "alsa-lib", "dbus", "gtk3"]
 
 [workflows]
 runButton = "Project"
@@ -15,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Browser Automation App"
+args = "Server"
 
 [[workflows.workflow]]
-name = "Browser Automation App"
+name = "Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start.sh"
+args = "gunicorn -c config/gunicorn.conf.py visionvault.web.app:app"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -33,11 +34,6 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 8080
-externalPort = 8080
-exposeLocalhost = true
-
-[[ports]]
-localPort = 38273
-externalPort = 80
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "-c", "config/gunicorn.conf.py", "visionvault.web.app:app"]
