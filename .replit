@@ -5,6 +5,7 @@ integrations = ["python_openai:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
+packages = ["gitFull", "playwright-driver"]
 
 [workflows]
 runButton = "Project"
@@ -16,15 +17,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Web App"
+args = "MCP Automation UI"
 
 [[workflows.workflow]]
-name = "Web App"
+name = "MCP Automation UI"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python app.py"
+args = "python web_ui.py"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -35,10 +36,9 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 8080
-externalPort = 8080
-exposeLocalhost = true
-
-[[ports]]
 localPort = 40223
 externalPort = 80
+
+[[ports]]
+localPort = 42801
+externalPort = 3000
