@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["gitFull", "libxcrypt", "playwright-driver"]
+packages = ["alsa-lib", "at-spi2-atk", "at-spi2-core", "atk", "cairo", "cups", "dbus", "gitFull", "libgbm", "libxcrypt", "libxkbcommon", "mesa", "nspr", "nss", "pango", "playwright-driver", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXfixes", "xorg.libxcb"]
 
 [workflows]
 runButton = "Project"
@@ -16,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Natural Language Automation"
+args = "Natural Language Automation (MCP)"
 
 [[workflows.workflow]]
-name = "Natural Language Automation"
+name = "Natural Language Automation (MCP)"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uv run python nl_automation.py"
+args = "uv run python nl_automation_mcp.py"
 
 [workflows.workflow.metadata]
 outputType = "console"

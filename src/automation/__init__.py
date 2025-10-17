@@ -5,6 +5,7 @@ from .nl_executor import NaturalLanguageExecutor
 from .enhanced_nl_executor import EnhancedNaturalLanguageExecutor
 from .advanced_tools import AdvancedPlaywrightTools
 from .vision_analyzer import VisionPageAnalyzer
+from .mcp_client import PlaywrightMCPClient
 
 try:
     from openai import AsyncOpenAI
@@ -20,5 +21,6 @@ __all__ = [
     'EnhancedNaturalLanguageExecutor',
     'AdvancedPlaywrightTools',
     'VisionPageAnalyzer',
+    'PlaywrightMCPClient',
     'AI_AVAILABLE'
 ]

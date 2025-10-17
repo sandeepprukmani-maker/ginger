@@ -188,22 +188,23 @@ class AdvancedPlaywrightTools:
         """
         logger.info(f"Smart finding element: {description}")
         
+        # Order strategies from most specific to least specific
         strategies = [
-            self._find_by_text(description),
             self._find_by_aria_label(description),
             self._find_by_placeholder(description),
             self._find_by_id_or_class(description),
-            self._find_by_type(description)
+            self._find_by_type(description),
+            self._find_by_text(description)
         ]
         
         for strategy in strategies:
             try:
                 selector = await strategy
                 if selector and await self._element_exists(selector):
-                    logger.success(f"Found element with selector: {selector}")
+                    logger.success(f"Found element using {strategy.__name__}: {selector}")
                     return selector
             except Exception as e:
-                logger.debug(f"Strategy failed: {e}")
+                logger.debug(f"Strategy {strategy.__name__} failed: {e}")
                 continue
         
         logger.warning(f"Could not find element: {description}")
@@ -255,8 +256,9 @@ class AdvancedPlaywrightTools:
         type_map = {
             'button': 'button, [role="button"], input[type="submit"]',
             'link': 'a[href]',
-            'input': 'input',
-            'search': 'input[type="search"], input[name*="search"]',
+            'search': 'input[type="search"], input[name*="search"], input[name*="q"], textarea[name*="search"]',
+            'input': 'input:not([type="submit"]):not([type="button"]):not([type="hidden"]), textarea',
+            'text': 'input[type="text"], input:not([type]), textarea',
             'email': 'input[type="email"], input[name*="email"]',
             'password': 'input[type="password"]',
             'submit': 'button[type="submit"], input[type="submit"]',
@@ -265,6 +267,12 @@ class AdvancedPlaywrightTools:
         }
         
         desc_lower = description.lower()
+        
+        # Prioritize search-specific selectors
+        if 'search' in desc_lower or 'query' in desc_lower:
+            if await self._element_exists(type_map['search']):
+                return type_map['search']
+        
         for keyword, selector in type_map.items():
             if keyword in desc_lower:
                 if await self._element_exists(selector):

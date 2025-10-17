@@ -1,12 +1,45 @@
 # Browser Automation Framework
 
 ## Overview
-A comprehensive Python-based browser automation framework powered by Playwright and AI. This framework enables powerful browser automation for **any website** using natural language instructions or code. Features intelligent error handling, learning capabilities, and automatic retry with corrections. Completely generic with no site-specific dependencies.
+A comprehensive Python-based browser automation framework powered by Playwright and AI. This framework enables powerful browser automation for **any website** using natural language instructions via Model Context Protocol (MCP). Features intelligent error handling, learning capabilities, and automatic retry with corrections. Completely generic with no site-specific dependencies.
 
 ## Project Status
-**Active Development** - Production-ready browser automation framework with natural language interface
+**✅ FULLY OPERATIONAL + MCP INTEGRATED** - Successfully configured in Replit environment
+- All dependencies installed and verified
+- Playwright browser (Chromium) configured with system dependencies
+- **NEW: Playwright MCP Server integration (@playwright/mcp) ✨**
+- OpenAI API integration active
+- Natural language automation tested and working via MCP
 
 ## Recent Changes (October 17, 2025)
+
+**🚀 Playwright MCP Server Integration:**
+- Integrated Microsoft's official Playwright MCP server (@playwright/mcp@latest)
+- Created PlaywrightMCPClient for standardized browser automation via Model Context Protocol
+- Built MCP-powered natural language automation (nl_automation_mcp.py)
+- MCP server provides 21 browser automation tools:
+  - Navigation: browser_navigate, browser_navigate_back
+  - Interaction: browser_click, browser_type, browser_fill_form, browser_select_option
+  - Advanced: browser_drag, browser_hover, browser_file_upload
+  - Analysis: browser_snapshot, browser_take_screenshot, browser_console_messages
+  - Network: browser_network_requests
+  - Management: browser_tabs, browser_close, browser_resize
+  - Utilities: browser_evaluate, browser_press_key, browser_wait_for, browser_handle_dialog
+  - Setup: browser_install
+- AI (GPT-4) automatically selects and chains appropriate MCP tools for complex tasks
+- Provides more robust and standardized automation than direct Playwright API
+- Fixed NixOS environment issues for npx/MCP server compatibility
+
+**Import to Replit Completed + Bug Fixes:**
+- Successfully migrated browser automation framework to Replit environment
+- Installed Playwright Chromium browser and system dependencies
+- Configured OpenAI API key via Replit Secrets
+- Installed required system packages: nspr, nss, dbus, atk, cups, mesa, cairo, pango, xorg libraries
+- Fixed smart selector bug: Now properly excludes submit buttons when searching for text inputs
+- Enhanced search selector: Added Google-specific patterns (input[name="q"]) and prioritization
+- Improved strategy order: More specific selectors (aria-label, placeholder) run before generic type matching
+- Verified all features are operational
+- Workflow configured and tested
 
 **Major Enhancement - Intelligent & Powerful Automation:**
 - **Vision-Based Intelligence**: Added GPT-4 Vision for page structure analysis and element detection
@@ -50,6 +83,7 @@ A comprehensive Python-based browser automation framework powered by Playwright 
 - `browser_engine.py` - Main browser automation engine with Playwright integration
 - `selectors.py` - Smart selector system with automatic strategy fallback
 - `task_executor.py` - Task execution framework for common automation patterns
+- `mcp_client.py` - **NEW** Playwright MCP server client for standardized automation
 - `enhanced_nl_executor.py` - **ENHANCED** Advanced NL executor with vision & intelligence
 - `nl_executor.py` - Basic natural language instruction executor
 - `advanced_tools.py` - **NEW** Advanced Playwright tools (iframes, dynamic content, smart finding)
@@ -60,10 +94,19 @@ A comprehensive Python-based browser automation framework powered by Playwright 
 - `logger.py` - Enhanced logging with Rich console output
 
 **Entry Points**
+- `nl_automation_mcp.py` - **NEW** MCP-powered natural language automation (recommended)
 - `nl_automation.py` - **ENHANCED** Interactive NL automation with vision mode
 - `main.py` - Traditional demo menu with code-based automation
 
 ### Features
+
+**🎭 MCP-Powered Automation (Primary Approach)**
+- Uses Microsoft's official Playwright MCP server for standardized automation
+- AI (GPT-4) intelligently selects and chains 21+ browser automation tools
+- Model Context Protocol ensures robust, reliable browser control
+- Convert plain English to automated browser actions via MCP tools
+- No coding or selectors required - AI handles everything
+- More stable than direct Playwright API calls
 
 **Enhanced Natural Language Automation**
 - Convert plain English instructions to browser actions
@@ -112,7 +155,9 @@ A comprehensive Python-based browser automation framework powered by Playwright 
 - Python 3.11
 - playwright (browser automation)
 - openai (AI code generation)
-- agents (MCP integration)
+- mcp (Model Context Protocol client)
+- @playwright/mcp (Playwright MCP server - npm package)
+- Node.js 20 (for MCP server)
 
 **Utilities**
 - python-dotenv (environment management)
@@ -122,7 +167,25 @@ A comprehensive Python-based browser automation framework powered by Playwright 
 
 ## Usage Examples
 
-### Natural Language Automation (Easiest)
+### MCP-Powered Natural Language Automation (Recommended)
+```bash
+# Run the MCP-powered automation:
+uv run python nl_automation_mcp.py
+
+# Then type natural language commands:
+# "Go to google.com and search for Python tutorials"
+# "Navigate to github.com and click the login button"
+# "Visit news.ycombinator.com and get the top 5 story titles"
+
+# The AI will:
+# 1. Use GPT-4 to understand your command
+# 2. Select appropriate MCP browser automation tools
+# 3. Chain multiple tools for complex tasks
+# 4. Execute via Playwright MCP server
+# 5. Provide clear feedback on progress
+```
+
+### Enhanced Natural Language Automation (Vision Mode)
 ```python
 # Just run nl_automation.py and type instructions like:
 # "Go to news.ycombinator.com and get the top 5 story titles"

@@ -1,11 +1,19 @@
-# Browser Automation Framework
+# 🎭 Browser Automation Framework with Playwright MCP
 
-A powerful Python-based browser automation framework powered by Playwright and AI. Build robust browser automation for **any website** using natural language instructions or code. Features intelligent error handling, learning capabilities, and automatic retry with corrections.
+A powerful Python-based browser automation framework powered by **Playwright** and **AI**. Build robust browser automation for **any website** using natural language instructions via **Model Context Protocol (MCP)** or traditional code. Features intelligent error handling, learning capabilities, and automatic retry with corrections.
 
 ## Features
 
-### 🎯 Enhanced Natural Language Automation (UPGRADED!)
-- **Just describe what you want**: "Go to google.com and search for Python"
+### 🚀 MCP-Powered Automation (PRIMARY - NEW!)
+- **Microsoft's Official Playwright MCP Server**: Standardized browser automation via Model Context Protocol
+- **21+ Browser Automation Tools**: AI intelligently selects and chains tools for complex tasks
+- **Just describe what you want**: "Go to google.com and search for Python tutorials"
+- **GPT-4 Intelligence**: Automatically determines which tools to use and how to chain them
+- **No coding or selectors needed**: AI handles everything via MCP protocol
+- **More robust and stable**: Standardized interface compared to direct API calls
+- **Production-ready**: Secure JSON parsing, proper error handling, tool validation
+
+### 🎯 Enhanced Natural Language Automation (ADVANCED)
 - **Vision-based intelligence**: Optional GPT-4 Vision analysis for complex pages
 - **Smart element detection**: Multiple fallback strategies to find elements
 - **Advanced web handling**: Supports iframes, popups, dynamic content, file uploads
@@ -44,23 +52,48 @@ A powerful Python-based browser automation framework powered by Playwright and A
 
 ## Quick Start
 
-### Natural Language Automation (Easiest!)
+### MCP-Powered Natural Language Automation (Recommended - Easiest!)
 
-Just tell the automation what you want to do in plain English:
+The most powerful and easiest way to automate browsers using Microsoft's Playwright MCP server:
 
 ```bash
 # Set your OpenAI API key
 export OPENAI_API_KEY='your-api-key'
 
-# Run natural language automation
-python nl_automation.py
+# Run MCP-powered automation
+uv run python nl_automation_mcp.py
 ```
 
-Then simply type instructions like:
-- "Go to news.ycombinator.com and get the top 5 story titles"
-- "Navigate to github.com and click the login button"
-- "Visit example.com and extract all headings"
-- "Search google for 'browser automation' and get the first 3 results"
+Then simply type natural language commands:
+- "Go to google.com and search for Python tutorials"
+- "Navigate to github.com and click the login button"  
+- "Visit news.ycombinator.com and get the top 5 story titles"
+- "Fill out the contact form with my information"
+
+**How it works:**
+1. **GPT-4** understands your command
+2. **AI selects** appropriate MCP browser automation tools (from 21+ available)
+3. **Chains tools** for complex multi-step tasks
+4. **Executes via** Playwright MCP server
+5. **Provides feedback** on progress and results
+
+**Available MCP Tools:**
+- Navigation: `browser_navigate`, `browser_navigate_back`
+- Interaction: `browser_click`, `browser_type`, `browser_fill_form`, `browser_select_option`
+- Advanced: `browser_drag`, `browser_hover`, `browser_file_upload`
+- Analysis: `browser_snapshot`, `browser_take_screenshot`, `browser_console_messages`
+- Network: `browser_network_requests`
+- Management: `browser_tabs`, `browser_close`, `browser_resize`
+- Utilities: `browser_evaluate`, `browser_press_key`, `browser_wait_for`, `browser_handle_dialog`
+
+### Enhanced Natural Language Automation (Advanced - Vision Mode)
+
+For more advanced automation with vision capabilities:
+
+```bash
+# Run enhanced NL automation
+python nl_automation.py
+```
 
 The AI will:
 1. Convert your instruction into browser actions
@@ -112,7 +145,12 @@ async def main():
 
 ### Run Interactive Demos
 
-**Natural Language Automation** (Recommended):
+**MCP-Powered Natural Language Automation** (Primary - Recommended):
+```bash
+uv run python nl_automation_mcp.py
+```
+
+**Enhanced Natural Language Automation** (Advanced):
 ```bash
 python nl_automation.py
 ```
@@ -220,20 +258,22 @@ current_price = await browser.get_text(".price")
 
 ```
 .
-├── src/automation/           # Core automation framework
-│   ├── browser_engine.py    # Main browser automation engine
-│   ├── selectors.py          # Smart selector system
-│   ├── task_executor.py     # Task execution framework
-│   ├── ai_generator.py      # AI code generation
-│   ├── config.py            # Configuration management
-│   └── logger.py            # Enhanced logging
-├── examples/                 # Example scripts
-│   ├── web_scraping_example.py
-│   ├── form_filling_example.py
-│   ├── ai_code_generation_example.py
-│   └── advanced_automation_example.py
-├── main.py                  # Interactive demo
-└── README.md               # This file
+├── src/automation/              # Core automation framework
+│   ├── mcp_client.py           # Playwright MCP client (NEW)
+│   ├── browser_engine.py       # Main browser automation engine
+│   ├── enhanced_nl_executor.py # Enhanced NL automation with vision
+│   ├── advanced_tools.py       # Advanced Playwright tools
+│   ├── vision_analyzer.py      # GPT-4 Vision analysis
+│   ├── selectors.py            # Smart selector system
+│   ├── task_executor.py        # Task execution framework
+│   ├── ai_generator.py         # AI code generation
+│   ├── config.py               # Configuration management
+│   └── logger.py               # Enhanced logging
+├── nl_automation_mcp.py        # MCP-powered automation (PRIMARY)
+├── nl_automation.py            # Enhanced NL automation
+├── examples/                    # Example scripts
+├── main.py                     # Interactive demo
+└── README.md                   # This file
 ```
 
 ## API Reference

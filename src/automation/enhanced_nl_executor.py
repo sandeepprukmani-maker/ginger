@@ -256,6 +256,7 @@ Return ONLY a JSON array of steps. Be specific but flexible with selectors."""
         total_steps = len(steps)
         completed = 0
         last_data = None
+        current_context = context
         
         for i, step in enumerate(steps):
             logger.info(f"Step {i+1}/{total_steps}: {step.description}")
@@ -267,7 +268,7 @@ Return ONLY a JSON array of steps. Be specific but flexible with selectors."""
                         description = step.params["description"]
                         
                         selector = await self._intelligent_find_selector(
-                            description, original_selector, step.use_vision, context
+                            description, original_selector, step.use_vision, current_context
                         )
                         
                         if selector:
@@ -321,6 +322,15 @@ Return ONLY a JSON array of steps. Be specific but flexible with selectors."""
                         total_steps=total_steps,
                         error=error_msg
                     )
+                
+                # Refresh page context after successful navigation for DOM analysis
+                if step.action == "navigate" and result.success and self.advanced_tools and step.use_vision:
+                    await asyncio.sleep(1)  # Give page time to load
+                    current_context = await self.advanced_tools.get_page_context(
+                        include_screenshot=True,
+                        include_dom=True
+                    )
+                    logger.info(f"📊 Refreshed DOM context after navigation to {current_context.url}")
                 
                 if result.data is not None:
                     last_data = result.data
