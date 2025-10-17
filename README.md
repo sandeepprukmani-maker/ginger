@@ -1,8 +1,17 @@
 # Browser Automation Framework
 
-A powerful Python-based browser automation framework powered by Playwright and AI. Build robust browser automation for **any website** including web scraping, form filling, testing, and AI-powered code generation.
+A powerful Python-based browser automation framework powered by Playwright and AI. Build robust browser automation for **any website** using natural language instructions or code. Features intelligent error handling, learning capabilities, and automatic retry with corrections.
 
 ## Features
+
+### 🎯 Enhanced Natural Language Automation (UPGRADED!)
+- **Just describe what you want**: "Go to google.com and search for Python"
+- **Vision-based intelligence**: Optional GPT-4 Vision analysis for complex pages
+- **Smart element detection**: Multiple fallback strategies to find elements
+- **Advanced web handling**: Supports iframes, popups, dynamic content, file uploads
+- **Intelligent error recovery**: Analyzes failures with vision and retries with corrections
+- **Session memory**: Learns from successful patterns to improve over time
+- **No coding or selectors needed**: Perfect for non-technical users
 
 ### 🚀 Core Browser Automation
 - **Multi-browser support**: Chromium, Firefox, WebKit
@@ -11,10 +20,11 @@ A powerful Python-based browser automation framework powered by Playwright and A
 - **Session management**: Cookie and state persistence across runs
 - **Debugging tools**: Screenshots, video recording, and trace files
 
-### 🤖 AI-Powered Code Generation
+### 🤖 AI-Powered Features
 - Generate Playwright automation code from natural language descriptions
-- Works with any website or automation task
-- Uses OpenAI GPT-4 for intelligent code generation
+- Intelligent error analysis and automatic corrections
+- Context-aware action generation
+- Uses OpenAI GPT-4 for intelligent automation
 
 ### 📦 Task Execution Library
 - Pre-built automation patterns:
@@ -34,7 +44,41 @@ A powerful Python-based browser automation framework powered by Playwright and A
 
 ## Quick Start
 
-### Basic Usage
+### Natural Language Automation (Easiest!)
+
+Just tell the automation what you want to do in plain English:
+
+```bash
+# Set your OpenAI API key
+export OPENAI_API_KEY='your-api-key'
+
+# Run natural language automation
+python nl_automation.py
+```
+
+Then simply type instructions like:
+- "Go to news.ycombinator.com and get the top 5 story titles"
+- "Navigate to github.com and click the login button"
+- "Visit example.com and extract all headings"
+- "Search google for 'browser automation' and get the first 3 results"
+
+The AI will:
+1. Convert your instruction into browser actions
+2. Use vision to understand page structure (optional)
+3. Intelligently find elements with multiple fallback strategies
+4. Handle complex scenarios (iframes, dynamic content, popups)
+5. Learn from any errors and retry automatically with better selectors
+6. Remember successful patterns for future use
+
+**Advanced Features:**
+- Vision-based page analysis for difficult-to-automate pages
+- Smart element finding (no need to know exact selectors)
+- Dynamic content waiting
+- Multi-page navigation
+- Table and link extraction
+- Error diagnosis with screenshots
+
+### Basic Usage (Code)
 
 ```python
 from src.automation import BrowserEngine, TaskExecutor
@@ -66,8 +110,14 @@ async def main():
     await browser.stop()
 ```
 
-### Run Interactive Demo
+### Run Interactive Demos
 
+**Natural Language Automation** (Recommended):
+```bash
+python nl_automation.py
+```
+
+**Traditional Demo Menu**:
 ```bash
 python main.py
 ```
@@ -96,10 +146,10 @@ python examples/advanced_automation_example.py
 
 ## Environment Variables
 
-Optional configuration via environment variables:
+Configuration via environment variables:
 
 ```bash
-# AI Code Generation (optional)
+# AI Features (REQUIRED for natural language automation)
 OPENAI_API_KEY=your_openai_api_key
 
 # Browser Configuration
@@ -114,7 +164,16 @@ LOG_LEVEL=INFO                 # DEBUG, INFO, WARNING, ERROR
 
 ## Use Cases
 
-### Web Scraping
+### Natural Language Web Scraping
+The easiest way - just describe what you want:
+
+```
+Instruction: "Go to news.ycombinator.com and extract the top 10 story titles"
+→ AI converts to actions and executes automatically
+→ Returns: List of story titles
+```
+
+### Traditional Web Scraping
 Scrape data from any website - e-commerce, news sites, job boards, etc.
 
 ```python

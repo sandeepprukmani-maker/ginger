@@ -16,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Automation Framework"
+args = "Natural Language Automation"
 
 [[workflows.workflow]]
-name = "Automation Framework"
+name = "Natural Language Automation"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "uv run python nl_automation.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
