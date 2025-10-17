@@ -1,48 +1,61 @@
-#!/usr/bin/env python3
-"""
-Quick test script to verify the automation system works
-"""
-
 import asyncio
-import sys
-from automation import AutomationEngine
+from src.automation import BrowserEngine, TaskExecutor
+from src.automation.config import BrowserConfig, AutomationConfig
+from src.automation.logger import get_logger
+
+logger = get_logger()
 
 
 async def test_basic_automation():
-    """Test basic automation functionality"""
+    logger.info("Testing basic browser automation framework")
     
-    print("🧪 Testing Browser Automation System...")
-    print("-" * 60)
+    browser_config = BrowserConfig(
+        headless=True,
+        timeout=30000,
+        screenshot_on_error=True
+    )
     
-    engine = AutomationEngine()
+    automation_config = AutomationConfig(
+        max_retries=3,
+        log_level="INFO"
+    )
+    
+    browser = BrowserEngine(browser_config, automation_config)
+    executor = TaskExecutor(browser)
     
     try:
-        print("\n1. Initializing engine...")
-        await engine.initialize()
-        print("✅ Engine initialized successfully")
+        logger.info("Starting browser...")
+        await browser.start()
+        logger.success("Browser started successfully!")
         
-        print("\n2. Testing simple navigation...")
-        result = await engine.execute_automation("navigate to example.com")
+        logger.info("Navigating to Python.org...")
+        await browser.navigate("https://www.python.org")
+        await browser.wait_for_load()
+        logger.success("Navigation successful!")
         
-        if result.get("success"):
-            print("\n✅ Test passed!")
-            print(f"   - Results saved to: {result['files']['results']}")
-            print(f"   - Code saved to: {result['files']['code']}")
-            return True
-        else:
-            print("\n❌ Test failed!")
-            print(f"   Error: {result.get('error', 'Unknown error')}")
-            return False
-            
+        logger.info("Extracting page title...")
+        title = await browser.get_text("h1")
+        logger.success(f"Page title: {title}")
+        
+        logger.info("Taking screenshot...")
+        screenshot_path = await browser.screenshot("test_python_org")
+        logger.success(f"Screenshot saved to: {screenshot_path}")
+        
+        logger.info("\n" + "="*50)
+        logger.success("✅ All tests passed! Framework is working correctly.")
+        logger.info("="*50 + "\n")
+        
     except Exception as e:
-        print(f"\n❌ Test failed with exception: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.exception(f"❌ Test failed: {e}")
         return False
     finally:
-        await engine.close()
+        logger.info("Stopping browser...")
+        await browser.stop()
+        logger.success("Browser stopped successfully!")
+    
+    return True
 
 
 if __name__ == "__main__":
     success = asyncio.run(test_basic_automation())
-    sys.exit(0 if success else 1)
+    exit(0 if success else 1)

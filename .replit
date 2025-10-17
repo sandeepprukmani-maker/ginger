@@ -1,9 +1,10 @@
-modules = ["nodejs-18", "web", "python-3.11"]
+modules = ["python-3.11", "nodejs-20"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
+packages = ["gitFull", "libxcrypt", "playwright-driver"]
 
 [workflows]
 runButton = "Project"
@@ -15,48 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "MCP Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Web App"
+args = "Automation Framework"
 
 [[workflows.workflow]]
-name = "MCP Server"
+name = "Automation Framework"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node cli.js --port 3000 --headless --browser chromium --no-sandbox --host 0.0.0.0"
-waitForPort = 3000
+args = "python main.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
-
-[[workflows.workflow]]
-name = "Web App"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[ports]]
-localPort = 3000
-externalPort = 3000
-
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 36331
-externalPort = 3001
-
-[[ports]]
-localPort = 44985
-externalPort = 3002

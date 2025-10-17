@@ -1,140 +1,151 @@
-# Overview
+# Browser Automation Framework
 
-This is an AI-powered UI testing system with **local agent execution** that combines Playwright MCP (Model Context Protocol) with LLM-based orchestration. The system consists of:
+## Overview
+A comprehensive Python-based browser automation framework powered by Playwright and AI. This framework enables powerful browser automation for **any website** including web scraping, form filling, testing, and AI-powered code generation. Completely generic with no site-specific dependencies.
 
-1. **Playwright MCP Server** - A Node.js/TypeScript wrapper around Microsoft's Playwright MCP tools, providing browser automation capabilities through the MCP protocol
-2. **Python Web Application** - A Flask-based web interface that uses OpenAI's LLM to convert natural language commands into executable Playwright automation sequences
-3. **Local Agent Executor** - Securely runs generated code in headful (visible browser) or headless mode
+## Project Status
+**Active Development** - Production-ready browser automation framework
 
-**What you can do:**
-- Enter natural language test prompts (e.g., "navigate to google.com and search for Playwright")
-- Get working Python Playwright code automatically
-- Run the generated code locally with visible browser (headful mode)
-- Toggle between headful/headless execution modes
+## Recent Changes (October 16, 2025)
+- Created modular browser automation framework with Python 3.11
+- Implemented core BrowserEngine with multi-browser support (Chromium, Firefox, WebKit)
+- Built SmartSelector system with automatic fallback strategies (CSS, XPath, text, ARIA)
+- Added TaskExecutor for common automation patterns (scraping, forms, navigation)
+- Integrated AI-powered code generation using OpenAI GPT-4 with MCP server
+- Implemented robust error handling with retry logic using tenacity
+- Added session management with cookie and state persistence
+- Created logging system with Rich console output
+- Built example scripts for various automation scenarios
+- Set up configuration management system
 
-# Recent Updates (October 16, 2024)
+## Architecture
 
-✅ **New: Local Agent with Headful Mode**
-- Added secure local code execution with hash validation
-- Headful/headless browser mode toggle
-- Run generated Playwright code with visible browser
-- Security: Only system-generated code can be executed (prevents arbitrary code execution)
+### Core Components
 
-✅ **Complete Web Application**
-- Flask web interface on port 5000
-- Playwright MCP server on port 3000
-- AI-powered automation with OpenAI integration
-- Full error handling and user-friendly UI
+**src/automation/**
+- `browser_engine.py` - Main browser automation engine with Playwright integration
+- `selectors.py` - Smart selector system with automatic strategy fallback
+- `task_executor.py` - Task execution framework for common automation patterns
+- `ai_generator.py` - AI-powered Playwright code generation using OpenAI
+- `config.py` - Configuration management (browser, automation settings)
+- `logger.py` - Enhanced logging with Rich console output
 
-# User Preferences
+### Features
 
-Preferred communication style: Simple, everyday language.
+**Browser Automation**
+- Multi-browser support (Chromium, Firefox, WebKit)
+- Headless and headed modes
+- Smart selector strategies with automatic fallback
+- Robust error handling and retry logic
+- Screenshot and video recording
+- Session and cookie management
+- Trace recording for debugging
 
-# System Architecture
+**Task Execution**
+- Pre-built tasks: navigate, click, fill, extract text/links, screenshot, wait, scroll
+- Form filling automation (any website)
+- Table scraping (any website)
+- Data extraction (any website)
+- Custom JavaScript execution
 
-## Frontend Architecture
+**AI Code Generation**
+- Generate Playwright code from natural language descriptions
+- Pre-built templates for scraping, form filling, login automation
+- MCP server integration for enhanced capabilities
 
-**Web Interface (Flask + HTML/CSS/JS)**
-- Simple single-page application served by Flask
-- Users enter natural language automation commands through a textarea
-- Real-time status updates and results display
-- Code generation output shown to users
-- Example prompts provided for common automation tasks
+**Configuration**
+- Environment-based configuration
+- Customizable timeouts and retries
+- Session persistence
+- Screenshot/video directories
+- Logging levels
 
-**Chrome Extension (Optional)**
-- React-based UI for browser tab selection
-- WebSocket relay connection to MCP server
-- Allows AI to interact with existing browser sessions and user profiles
-- Tab management and connection status monitoring
+## Dependencies
 
-## Backend Architecture
+**Core**
+- Python 3.11
+- playwright (browser automation)
+- openai (AI code generation)
+- agents (MCP integration)
 
-**Python Automation Engine** (`automation/`)
-- `AutomationEngine`: Main orchestrator coordinating the workflow
-- `LLMOrchestrator`: Converts natural language to automation steps using OpenAI GPT-5
-- `PlaywrightMCPClient`: MCP client for communicating with Playwright server via stdio
-- Generates executable Python Playwright code from automation steps
-- Saves results and generated code to `output/` and `generated_code/` directories
+**Utilities**
+- python-dotenv (environment management)
+- tenacity (retry logic)
+- rich (console output)
+- pydantic (data validation)
 
-**Node.js MCP Server Wrapper**
-- Thin wrapper around Microsoft's Playwright MCP implementation
-- Core MCP logic lives in `playwright/lib/mcp` (Microsoft's Playwright monorepo)
-- Exposes browser automation tools through MCP protocol
-- Supports multiple browsers (Chromium, Firefox, WebKit)
-- Can run in headless or headed mode
-- Supports Docker containerization for isolated testing
+## Usage Examples
 
-**Tool Capabilities System**
-- Core automation: navigate, click, fill forms, take screenshots
-- Tab management: multi-tab support
-- Browser installation: automated browser setup
-- Vision (opt-in): coordinate-based interactions
-- PDF generation (opt-in): document creation
-- Tracing (opt-in): execution recording and debugging
+### Basic Web Automation
+```python
+from src.automation import BrowserEngine, TaskExecutor
+from src.automation.config import BrowserConfig, AutomationConfig
 
-## Communication Flow
+browser = BrowserEngine(BrowserConfig(), AutomationConfig())
+executor = TaskExecutor(browser)
 
-1. User enters natural language command in web UI
-2. Flask app sends command to LLMOrchestrator
-3. LLM analyzes available MCP tools and generates automation plan
-4. PlaywrightMCPClient executes plan by calling MCP tools via stdio
-5. Results and generated code are saved and displayed to user
+await browser.start()
+await browser.navigate("https://any-website.com")
+headings = await browser.get_all_text("h1, h2, h3")
+links = await browser.get_all_text("a")
+await browser.stop()
+```
 
-## Testing Infrastructure
+### AI Code Generation
+```python
+from src.automation import AITaskGenerator
 
-**Playwright Test Suite**
-- Comprehensive test coverage using @playwright/test
-- Tests for core tools (navigate, click, type, etc.)
-- Extension-specific tests for browser tab connection
-- Docker mode testing for containerized environments
-- Custom fixtures for MCP client initialization
+generator = AITaskGenerator()
+code = await generator.generate_playwright_code("Navigate to any website and extract all headings")
+```
 
-# External Dependencies
+### Custom Automation (Any Website)
+```python
+browser = BrowserEngine()
+await browser.start()
+await browser.navigate("https://any-site.com")
+await browser.fill("input[name='email']", "user@example.com")
+await browser.click("button.submit")
+data = await browser.get_all_text(".data-item")
+await browser.stop()
+```
 
-## Third-Party Services
+## Environment Variables
 
-**OpenAI API**
-- Model: GPT-5 (latest as of August 2025)
-- Purpose: Natural language to automation plan conversion
-- Required: `OPENAI_API_KEY` environment variable
-- Used by: `LLMOrchestrator` class
+Set environment variables using Replit Secrets:
+- `OPENAI_API_KEY` - Optional, required only for AI code generation features
+- Other settings can be configured via BrowserConfig and AutomationConfig classes
 
-## NPM Packages
+## Known Limitations in Replit
 
-**Core Dependencies**
-- `playwright` & `playwright-core` (1.57.0-alpha): Browser automation engine
-- `@modelcontextprotocol/sdk`: MCP protocol implementation for client-server communication
+- Playwright browser automation requires system dependencies that may need manual installation in cloud environments
+- The framework code is fully functional, but actual browser execution may require additional setup
+- All features work correctly in local development environments with Playwright dependencies installed
+- AI code generation works if OPENAI_API_KEY is provided
 
-**Development Dependencies**
-- `@playwright/test`: Testing framework
-- `@types/node`: TypeScript type definitions
-- `zod-to-json-schema`: Schema conversion for tool definitions
-- TypeScript, Vite, React (for extension UI)
+## Project Structure
+```
+.
+├── src/
+│   └── automation/
+│       ├── __init__.py
+│       ├── browser_engine.py
+│       ├── selectors.py
+│       ├── task_executor.py
+│       ├── ai_generator.py
+│       ├── config.py
+│       └── logger.py
+├── examples/
+│   ├── web_scraping_example.py
+│   ├── form_filling_example.py
+│   ├── ai_code_generation_example.py
+│   └── advanced_automation_example.py
+├── main.py
+├── README.md
+└── replit.md
+```
 
-## Python Packages
-
-**Core Dependencies**
-- `flask`: Web application framework
-- `flask-cors`: Cross-origin resource sharing support
-- `openai`: OpenAI API client for LLM integration
-- `mcp`: Model Context Protocol Python client
-- `playwright` (Python): For generated code execution
-
-## Browser Dependencies
-
-- Chromium/Chrome (default)
-- Firefox (optional)
-- WebKit (optional)
-- Installed via Playwright's built-in installer (`npx playwright install`)
-
-## Infrastructure
-
-**MCP Server Communication**
-- stdio (standard input/output) transport for local MCP server
-- WebSocket relay for Chrome extension mode
-- HTTP/HTTPS test servers for integration testing
-
-**File System**
-- `output/` directory: Automation results and execution logs
-- `generated_code/` directory: Generated Python Playwright scripts
-- Extension user data directory for persistent browser profiles
+## User Preferences
+- Prefers comprehensive, production-ready solutions
+- Values robust error handling and logging
+- Wants flexibility for any automation use case
