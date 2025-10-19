@@ -1,0 +1,127 @@
+C:\Users\Sandeep\Downloads\ginger\ginger\.mvenv\Scripts\python.exe C:\Users\Sandeep\Downloads\ginger\ginger\run_server.py 
+✅ Configuration loaded from: C:\Users\Sandeep\Downloads\ginger\ginger\config.ini
+✅ OpenAI client initialized for code generation
+Loading existing vector index from data/vector_index.faiss
+✅ Semantic search service initialized with Gemini embeddings
+✅ Database initialized with persistent learning tables
+✅ Intelligent Planner initialized (GPT-4o pre-execution analysis)
+✅ Self-Learning Engine initialized (learned from 0 past executions)
+✅ MCP Automation Manager initialized
+✅ Unified Automation Engine initialized
+   MCP Direct: ✅ Available
+   Code Generation: ✅ Available
+   HYBRID (MCP + Code): ✅ Available
+🎯 Unified Automation Engine ready - intelligent strategy selection enabled
+Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+🚀 Starting VisionVault server on 0.0.0.0:5000
+   Debug mode: disabled
+ * Serving Flask app 'visionvault.web.app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.150:5000
+Press CTRL+C to quit
+127.0.0.1 - - [19/Oct/2025 09:39:03] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1Fx HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:03] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1Fx HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:03] "POST /socket.io/?EIO=4&transport=polling&t=Pdwg1G8&sid=JNCqflIWbmlDOaGLAAAA HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:03] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1G8.0&sid=JNCqflIWbmlDOaGLAAAA HTTP/1.1" 200 -
+Client connected: pPLvnz9jV6Xeik-qAAAC
+Client connected: qDHkAl4w-KNEWNBiAAAD
+127.0.0.1 - - [19/Oct/2025 09:39:03] "POST /socket.io/?EIO=4&transport=polling&t=Pdwg1GD&sid=L5QbOds3c3MyF2HWAAAB HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:03] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1GE&sid=L5QbOds3c3MyF2HWAAAB HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:03] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1GV&sid=L5QbOds3c3MyF2HWAAAB HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:05] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1qF HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:05] "GET /api/history HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:05] "POST /socket.io/?EIO=4&transport=polling&t=Pdwg1qO&sid=Kf3sIa0CEg5Wvo_RAAAE HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:39:05] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1qQ&sid=Kf3sIa0CEg5Wvo_RAAAE HTTP/1.1" 200 -
+Client connected: 0OlEf_y4xpVeJK4DAAAF
+127.0.0.1 - - [19/Oct/2025 09:39:05] "GET /socket.io/?EIO=4&transport=polling&t=Pdwg1rE&sid=Kf3sIa0CEg5Wvo_RAAAE HTTP/1.1" 200 -
+Client connected: GBkAusO2g03k_arvAAAH
+Agent registered: 5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9
+Updated connected_agents after register: {'GBkAusO2g03k_arvAAAH': {'agent_id': '5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9', 'browsers': ['chromium'], 'connected_at': '2025-10-19T09:39:25.080733'}}
+Emitting agents_update: [{'agent_id': '5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9', 'browsers': ['chromium'], 'connected_at': '2025-10-19T09:39:25.080733'}]
+Agent registered: 5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9
+Updated connected_agents after register: {'GBkAusO2g03k_arvAAAH': {'agent_id': '5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9', 'browsers': ['chromium'], 'connected_at': '2025-10-19T09:39:25.082722'}}
+Emitting agents_update: [{'agent_id': '5fa2f934-6eb2-4bea-8ca1-d39e33e14ba9', 'browsers': ['chromium'], 'connected_at': '2025-10-19T09:39:25.082722'}]
+
+🔍 INTELLIGENT DOM INSPECTION...
+   Analyzing page: https://www.jio.com/selfcare/login/
+   ✅ Page analyzed successfully!
+   Found: 0 intent-matched, 0 form, 0 interactive elements
+
+🧠 INTELLIGENT PRE-EXECUTION ANALYSIS...
+   Intent: Authenticate user
+   Complexity: medium
+   Confidence: 75%
+   Predicted issues: 1
+   Recommended strategies: 2
+
+📚 SELF-LEARNING RECOMMENDATIONS:
+   Predicted success rate: 0.0%
+   Recommended locators: 
+   Confidence: 70%
+127.0.0.1 - - [19/Oct/2025 09:40:12] "POST /api/execute HTTP/1.1" 200 -
+✅ Enhanced AI healing enabled (Advanced Validator + Multi-Strategy Healing + 2 attempts)
+
+🤖 AI HEALING REQUEST:
+  Test ID: 1
+  Error Type: timeout
+  Attempt: 1
+  Error Detail: STEP 1: Navigated to the login page Error at STEP 2: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for get_by_role("link", name="Bu
+  🔄 Regenerating code with AI (attempt 1/2)...
+
+🤖 AI CODE REGENERATION (Attempt 1/2)
+   Error type: timeout
+   Failed at step: 0
+   Error: STEP 1: Navigated to the login page Error at STEP 2: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for get_by_role("link", name="Business") to be visible
+...
+   Using model: GPT-4o-mini
+
+💾 SAVING TO DATABASE:
+  test_id: 1
+  status: failed
+  healed_code is None: True
+  healed_code length: 0
+  ✅ Database updated successfully
+127.0.0.1 - - [19/Oct/2025 09:40:24] "GET /api/history HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2025 09:40:24] "GET /uploads/screenshots/test_1.png HTTP/1.1" 200 -
+✅ AI generated improved code (2407 chars)
+  ✅ AI regenerated code saved to database (2407 chars)
+  🚀 Sent healed code to agent for retry (attempt 2/2)
+
+🤖 AI HEALING REQUEST:
+  Test ID: 1
+  Error Type: timeout
+  Attempt: 2
+  Error Detail: STEP 1: Navigated to the login page Error at STEP 2: Locator.wait_for: Timeout 10000ms exceeded.
+Call log:
+  - waiting for get_by_role("link", name="B
+✅ Enhanced AI healing enabled (Advanced Validator + Multi-Strategy Healing + 2 attempts)
+  ⚠️ Max AI healing attempts (2) reached, triggering manual widget...
+  🎯 Sent manual healing trigger to agent (attempt 999 - final manual attempt)
+
+✅ ELEMENT SELECTED EVENT RECEIVED:
+  test_id: 1
+  selector: page.get_by_text("Business")
+  failed_locator: page.get_by_role("link", name="Business")
+  ✅ Replaced full method call (flexible): 'page.get_by_role("link", name="Business")' -> 'page.get_by_text("Business")'
+
+🔧 HEALING SCRIPT IN handle_element_selected:
+  Failed locator: 'page.get_by_role("link", name="Business")'
+  Healed locator: 'page.get_by_text("Business")'
+  Replacement successful: True
+  Healed code length: 2393
+  ✅ Healed code saved to database for test 1
+
+🚀 TRIGGERING FINAL RETRY with user-selected locator...
+  Test ID: 1
+  Browser: chromium
+  Mode: headful
+  Agent SID from executor: GBkAusO2g03k_arvAAAH
+  ✅ FINAL manual healing attempt triggered with healed code to agent GBkAusO2g03k_arvAAAH
