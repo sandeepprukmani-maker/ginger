@@ -1,0 +1,47 @@
+modules = ["web", "python-3.11"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["alsa-lib", "atk", "cups", "dbus", "expat", "freetype", "gitFull", "glibcLocales", "gtk3", "iana-etc", "lcms2", "libdrm", "libev", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "libxkbcommon", "mesa", "nss", "openjpeg", "pango", "playwright-driver", "tcl", "tk", "zlib"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server"
+
+[[workflows.workflow]]
+name = "Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python run_server.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 38003
+externalPort = 3001
+
+[[ports]]
+localPort = 40197
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--worker-class=gevent", "--workers=1", "--reuse-port", "visionvault.web.app:app"]
