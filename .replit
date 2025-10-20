@@ -1,25 +1,9 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+modules = ["nodejs-18", "web", "python-3.11"]
+[agent]
+expertMode = true
 
 [nix]
-channel = "stable-24_05"
-
-[deployment]
-deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
-
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 45943
-externalPort = 3000
-
-[env]
-PORT = "5000"
+channel = "stable-25_05"
 
 [workflows]
 runButton = "Project"
@@ -31,16 +15,24 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Web App"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Web App"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "python main.py"
 waitForPort = 5000
 
-[agent]
-integrations = ["javascript_openai:1.0.0", "javascript_websocket:1.0.0", "javascript_mem_db:1.0.0"]
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["python", "main.py"]

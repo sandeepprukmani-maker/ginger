@@ -1,118 +1,189 @@
-# AI Web Automation Platform
+# AI Browser Automation Agent
 
-## Overview
-An intelligent web automation platform that converts natural language instructions into autonomous browser automation tasks using OpenAI's LLM and Playwright. Users can scrape data, perform assertions, and automate complex browser workflows without writing any code or providing manual selectors.
+## Project Overview
 
-## Core Features
-- **Natural Language Input**: Users describe what they want to automate in plain English
-- **Intelligent Element Detection**: AI automatically identifies page elements using Playwright's accessibility tree and auto-locators
-- **Autonomous Execution**: System handles navigation, clicking, form filling, and data extraction without explicit selectors
-- **Smart Scraping**: Extracts relevant data based on context and user intent
-- **Assertion Engine**: Validates page states, element existence, text content, and conditions
-- **Real-time Updates**: WebSocket connection streams execution progress to the frontend
-- **Error Recovery**: Automatic retry logic for transient failures with fallback strategies
-- **Export Capabilities**: Download results as JSON for further processing
+This is a **Python web application** that combines OpenAI GPT-5 with Playwright MCP (Model Context Protocol) to create an intelligent browser automation agent. Users can input natural language instructions, and the AI agent will autonomously perform browser actions to complete the task.
+
+**Project Type:** Flask Web Application + AI Agent
+**Created:** October 20, 2025
+
+## Key Features
+
+- Natural language browser automation powered by OpenAI GPT-5
+- Intelligent task interpretation and execution using AI function calling
+- Real-time browser control via Playwright MCP
+- Beautiful, responsive web interface
+- Step-by-step execution tracking with detailed results
+- Supports navigation, clicking, form filling, and page analysis
 
 ## Architecture
 
-### Frontend (React + TypeScript)
-- Minimal, functional UI focused on core workflow
-- Command input with natural language examples
-- Run history sidebar with status indicators
-- Execution step viewer with detailed logs and selectors
-- Results display for scraped data and assertions
-- JSON export functionality
-- Real-time updates via WebSocket with auto-reconnection
+### Components
 
-### Backend (Express + Playwright + OpenAI)
-- **LLM Integration**: GPT-5 parses natural language into structured execution plans
-- **Playwright Automation**: Executes browser tasks using intelligent element detection
-- **Auto-Locators**: Uses getByRole, getByText, getByLabel for reliable element identification
-- **Accessibility Tree**: Leverages Playwright's accessibility tree for context-aware automation
-- **Error Recovery**: Intelligent retry logic (2s delay + 1 retry) for non-assertion steps
-- **Selector Persistence**: Stores resolved selectors for debugging and transparency
-- **WebSocket Streaming**: Real-time execution updates for steps, logs, scraped data, and assertions
+1. **Flask Web App** (`app/web_app.py`)
+   - Web server providing REST API and user interface
+   - Endpoints for instruction execution, tools listing, and health checks
+   - Lazy initialization of MCP client for efficiency
 
-### Data Models
-- **AutomationRun**: Top-level execution container with command, status, timestamps
-- **ExecutionStep**: Individual steps (navigate, click, type, extract, assert, wait, screenshot) with results and resolved selectors
-- **ScrapedData**: Extracted data in flexible JSON structure
-- **AssertionResult**: Validation outcomes with expected vs actual comparisons
+2. **MCP STDIO Client** (`app/mcp_stdio_client.py`)
+   - Communicates with Playwright MCP server via subprocess
+   - Uses JSON-RPC over STDIO transport for stateful sessions
+   - Manages browser lifecycle and tool invocations
 
-## Technology Stack
-- **Frontend**: React, TanStack Query, Wouter, Shadcn UI, Tailwind CSS
-- **Backend**: Express.js, Playwright, OpenAI GPT-5, WebSockets (ws)
-- **Storage**: In-memory (MemStorage) for MVP
-- **Real-time**: WebSocket for execution streaming with dedicated message types
+3. **Browser Agent** (`app/browser_agent.py`)
+   - OpenAI GPT-5 powered intelligent agent
+   - Interprets natural language instructions
+   - Uses function calling to execute browser automation tools
+   - Iterative execution with feedback loops
 
-## Key Design Decisions
-- **No Manual Selectors**: System uses AI + Playwright's intelligent locators exclusively
-- **Accessibility-First**: Leverages semantic HTML and ARIA attributes for reliable automation
-- **Stateless Execution**: Each run is independent, stored with complete context
-- **Streaming Updates**: WebSocket ensures users see progress in real-time (steps, logs, scraped data, assertions)
-- **Backend-Focused**: Emphasis on robust automation engine over UI complexity
-- **Error Resilience**: Retry logic with proper error clearing prevents stale failure states
-- **Developer UX**: Dark theme, monospace for technical data, minimal but functional interface
+4. **Playwright MCP Server** (`cli.js`)
+   - Node.js-based browser automation server
+   - Launched as subprocess by the Python client
+   - Provides structured browser interaction tools
 
-## API Endpoints
-- `POST /api/runs` - Create new automation run (triggers async execution)
-- `GET /api/runs` - List all runs
-- `GET /api/runs/:id` - Get run details
-- `GET /api/runs/:id/steps` - Get execution steps with selectors
-- `GET /api/runs/:id/scraped` - Get scraped data
-- `GET /api/runs/:id/assertions` - Get assertion results
-- WebSocket `/ws` - Real-time execution updates (5 message types)
+### Technology Stack
 
-## WebSocket Message Types
-1. `run_status` - Overall run status updates (pending, running, completed, failed)
-2. `step_update` - Individual step progress with status and results
-3. `scraped_data` - Newly extracted data broadcast immediately
-4. `assertion_result` - Assertion outcomes broadcast immediately
-5. `log` - Execution logs with levels (info, warn, error)
+**Backend:**
+- Python 3.11
+- Flask (web framework)
+- OpenAI Python SDK (GPT-5 API)
+- Requests (HTTP client)
 
-## Automation Flow
-1. User submits natural language command
-2. LLM (GPT-5) parses command into structured step plan
-3. Orchestrator creates run and steps in storage
-4. Playwright executor runs each step sequentially:
-   - Uses intelligent locators (no manual selectors)
-   - On failure: broadcasts error, waits 2s, retries once (except assertions)
-   - On success: persists selector metadata, broadcasts results
-   - Extracts/asserts: creates data entities and broadcasts via WebSocket
-5. Frontend receives real-time updates and invalidates queries
-6. Run completes with all steps, scraped data, and assertion results
+**Browser Automation:**
+- Playwright MCP Server (Node.js)
+- Model Context Protocol (STDIO transport)
+- Chromium browser (headless mode)
 
-## Recent Changes
+**Frontend:**
+- HTML5 + CSS3
+- Vanilla JavaScript (no frameworks)
+- Responsive design with gradient UI
 
-### 2025-01-20: Complete Implementation
-- ✅ Defined complete data schema for automation runs, steps, scraped data, assertions
-- ✅ Built minimal functional frontend with command input, run history, and results display
-- ✅ Configured design tokens for developer-focused utility application
-- ✅ Set up in-memory storage with full CRUD operations
-- ✅ Implemented OpenAI GPT-5 LLM planner for natural language parsing
-- ✅ Built Playwright executor with intelligent element detection (accessibility tree + auto-locators)
-- ✅ Created orchestrator for coordinating LLM + Playwright + WebSocket
-- ✅ Added WebSocket server with 5 message types for real-time updates
-- ✅ Implemented retry/recovery logic with proper error clearing
-- ✅ Fixed selector metadata persistence through storage interface
-- ✅ Added real-time streaming for scraped data and assertions
-- ✅ Connected frontend to backend APIs with TanStack Query
-- ✅ Implemented WebSocket hook with auto-reconnection
+## Project Structure
 
-## Testing Recommendations
-- Test natural language commands: "Go to example.com and click the login button"
-- Verify intelligent element detection without manual selectors
-- Confirm real-time updates stream correctly for all data types
-- Test retry logic by inducing transient failures
-- Validate scraping and assertions work end-to-end
-- Check concurrent runs respect single-execution guard
+```
+.
+├── app/
+│   ├── __init__.py
+│   ├── web_app.py              # Flask application
+│   ├── mcp_stdio_client.py     # MCP client (STDIO transport)
+│   ├── mcp_client.py           # HTTP client (legacy, not used)
+│   ├── browser_agent.py        # OpenAI agent
+│   ├── templates/
+│   │   └── index.html          # Web interface
+│   └── static/
+│       ├── css/style.css       # Stylesheet
+│       └── js/app.js           # Frontend JavaScript
+├── main.py                     # Application entry point
+├── cli.js                      # Playwright MCP server
+├── package.json                # Node.js dependencies for MCP
+├── pyproject.toml              # Python dependencies
+└── replit.md                   # This file
+
+```
+
+## How It Works
+
+1. **User Input:** User enters a natural language instruction (e.g., "Go to google.com and search for 'AI'")
+2. **AI Processing:** OpenAI GPT-5 interprets the instruction and breaks it into browser automation steps
+3. **Tool Execution:** The agent calls Playwright MCP tools (navigate, click, fill, etc.) via function calling
+4. **Feedback Loop:** After each action, the agent receives page state and decides next steps
+5. **Results Display:** All steps and results are shown in real-time on the web interface
+
+## Environment Variables
+
+- `OPENAI_API_KEY` - OpenAI API key for GPT-5 access (required)
+
+## Usage
+
+### Starting the Application
+
+The application runs automatically on Replit. The Flask server starts on port 5000 and launches the Playwright MCP server as a subprocess.
+
+### Example Instructions
+
+- "Go to example.com"
+- "Navigate to github.com and find trending repositories"  
+- "Open google.com and search for 'Playwright MCP'"
+- "Visit example.com and get the page title"
+
+### API Endpoints
+
+- `GET /` - Web interface
+- `POST /api/execute` - Execute an instruction
+- `GET /api/tools` - List available browser tools
+- `POST /api/reset` - Reset agent conversation
+- `GET /health` - Health check endpoint
+
+## Available Browser Tools
+
+The Playwright MCP server provides these tools:
+
+- `browser_navigate` - Navigate to a URL
+- `browser_click` - Click an element on the page
+- `browser_fill` - Fill form fields with text
+- `browser_snapshot` - Get page accessibility tree
+- `browser_close` - Close the browser
+- And many more...
+
+## Technical Notes
+
+### Transport Protocol
+
+This project uses **STDIO transport** instead of HTTP transport because:
+- HTTP transport in Playwright MCP is stateless (each request is independent)
+- STDIO maintains session state across multiple tool calls
+- Subprocess communication ensures reliable browser context preservation
+
+### AI Agent Design
+
+The browser agent uses OpenAI's function calling feature:
+1. System prompt defines the agent's role and capabilities
+2. Available tools are formatted as OpenAI function schemas
+3. GPT-5 decides which tools to call based on the instruction
+4. Agent executes tools and provides results back to GPT-5
+5. Process repeats until task is complete (max 10 iterations)
+
+### Error Handling
+
+- Graceful degradation when MCP server is unavailable
+- Tool execution errors are captured and reported to the AI
+- User-friendly error messages in the web interface
+- Health check endpoint for monitoring
+
+## Development Notes
+
+- The MCP client spawns a new Playwright subprocess for each web session
+- Browser runs in headless mode for server environments
+- Lazy initialization prevents unnecessary resource usage
+- CORS and security headers should be added for production use
+
+## Deployment
+
+Configured for Replit Autoscale deployment:
+- Deployment target: `autoscale` (stateless web application)
+- Run command: `python main.py`
+- Port: 5000 (exposed via web interface)
+
+## Known Limitations
+
+1. **Single User:** One browser session per application instance
+2. **No Persistence:** Browser state is lost when the app restarts
+3. **Resource Intensive:** Running browsers requires significant memory
+4. **Rate Limits:** Subject to OpenAI API rate limits and costs
 
 ## Future Enhancements
-- Persistent database (PostgreSQL) for production use
-- Multi-step form filling with complex validation
-- Screenshot comparison and visual regression testing
-- Scheduled automation runs
-- API authentication and user management
-- Export to CSV in addition to JSON
-- Advanced LLM reasoning for dynamic page interactions
-- Session persistence across page navigations
+
+- Multi-user support with session management
+- Persistent browser profiles and cookies
+- Screenshot and PDF generation capabilities
+- Integration with more AI providers
+- Advanced debugging and logging features
+- Browser extension support for non-headless mode
+
+## Credits
+
+- Built on Replit platform
+- Uses Microsoft Playwright MCP Server
+- Powered by OpenAI GPT-5
+- Created as a demonstration of AI-powered browser automation

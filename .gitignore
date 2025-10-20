@@ -1,6 +1,10 @@
-node_modules
-dist
+lib/
+dist/
+node_modules/
+test-results/
+playwright-report/
+.vscode/mcp.json
+.idea
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+.env
+sessions/
