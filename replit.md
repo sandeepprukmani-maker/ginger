@@ -1,148 +1,118 @@
-# Overview
+# AI Web Automation Platform
 
-This is a browser automation framework built with Python and Playwright that provides multiple interfaces for web automation:
+## Overview
+An intelligent web automation platform that converts natural language instructions into autonomous browser automation tasks using OpenAI's LLM and Playwright. Users can scrape data, perform assertions, and automate complex browser workflows without writing any code or providing manual selectors.
 
-1. **Basic Browser Automation** - Direct Playwright-based automation with smart selectors and error handling
-2. **Natural Language Automation** - AI-powered automation using OpenAI to convert natural language commands into browser actions
-3. **MCP Integration** - Integration with Playwright's Model Context Protocol (MCP) server for advanced automation capabilities
-4. **Vision-Based Analysis** - GPT-4 Vision integration for intelligent element detection and page understanding
+## Core Features
+- **Natural Language Input**: Users describe what they want to automate in plain English
+- **Intelligent Element Detection**: AI automatically identifies page elements using Playwright's accessibility tree and auto-locators
+- **Autonomous Execution**: System handles navigation, clicking, form filling, and data extraction without explicit selectors
+- **Smart Scraping**: Extracts relevant data based on context and user intent
+- **Assertion Engine**: Validates page states, element existence, text content, and conditions
+- **Real-time Updates**: WebSocket connection streams execution progress to the frontend
+- **Error Recovery**: Automatic retry logic for transient failures with fallback strategies
+- **Export Capabilities**: Download results as JSON for further processing
 
-The framework is designed to make browser automation accessible through multiple layers of abstraction, from low-level Playwright control to high-level natural language commands.
+## Architecture
 
-# User Preferences
+### Frontend (React + TypeScript)
+- Minimal, functional UI focused on core workflow
+- Command input with natural language examples
+- Run history sidebar with status indicators
+- Execution step viewer with detailed logs and selectors
+- Results display for scraped data and assertions
+- JSON export functionality
+- Real-time updates via WebSocket with auto-reconnection
 
-Preferred communication style: Simple, everyday language.
+### Backend (Express + Playwright + OpenAI)
+- **LLM Integration**: GPT-5 parses natural language into structured execution plans
+- **Playwright Automation**: Executes browser tasks using intelligent element detection
+- **Auto-Locators**: Uses getByRole, getByText, getByLabel for reliable element identification
+- **Accessibility Tree**: Leverages Playwright's accessibility tree for context-aware automation
+- **Error Recovery**: Intelligent retry logic (2s delay + 1 retry) for non-assertion steps
+- **Selector Persistence**: Stores resolved selectors for debugging and transparency
+- **WebSocket Streaming**: Real-time execution updates for steps, logs, scraped data, and assertions
 
-# System Architecture
+### Data Models
+- **AutomationRun**: Top-level execution container with command, status, timestamps
+- **ExecutionStep**: Individual steps (navigate, click, type, extract, assert, wait, screenshot) with results and resolved selectors
+- **ScrapedData**: Extracted data in flexible JSON structure
+- **AssertionResult**: Validation outcomes with expected vs actual comparisons
 
-## Core Components
+## Technology Stack
+- **Frontend**: React, TanStack Query, Wouter, Shadcn UI, Tailwind CSS
+- **Backend**: Express.js, Playwright, OpenAI GPT-5, WebSockets (ws)
+- **Storage**: In-memory (MemStorage) for MVP
+- **Real-time**: WebSocket for execution streaming with dedicated message types
 
-### 1. Browser Engine (`browser_engine.py`)
-- **Purpose**: Low-level Playwright wrapper providing browser lifecycle management
-- **Key Features**:
-  - Multi-browser support (Chromium, Firefox, WebKit)
-  - Automatic directory setup for screenshots, videos, and sessions
-  - Built-in retry logic using Tenacity
-  - Smart selector system supporting CSS, XPath, text, and ARIA selectors
-  - Configurable viewport, locale, timezone, and proxy settings
-- **Design Decision**: Separated browser management from task execution for better modularity and testability
+## Key Design Decisions
+- **No Manual Selectors**: System uses AI + Playwright's intelligent locators exclusively
+- **Accessibility-First**: Leverages semantic HTML and ARIA attributes for reliable automation
+- **Stateless Execution**: Each run is independent, stored with complete context
+- **Streaming Updates**: WebSocket ensures users see progress in real-time (steps, logs, scraped data, assertions)
+- **Backend-Focused**: Emphasis on robust automation engine over UI complexity
+- **Error Resilience**: Retry logic with proper error clearing prevents stale failure states
+- **Developer UX**: Dark theme, monospace for technical data, minimal but functional interface
 
-### 2. Task Executor (`task_executor.py`)
-- **Purpose**: High-level task orchestration layer
-- **Capabilities**: Navigate, click, fill forms, extract text/links, screenshots, waiting, scrolling, script execution
-- **Design Pattern**: Command pattern with TaskType enum and TaskResult dataclass for structured execution
-- **Rationale**: Provides a clean API layer between low-level browser operations and high-level automation logic
+## API Endpoints
+- `POST /api/runs` - Create new automation run (triggers async execution)
+- `GET /api/runs` - List all runs
+- `GET /api/runs/:id` - Get run details
+- `GET /api/runs/:id/steps` - Get execution steps with selectors
+- `GET /api/runs/:id/scraped` - Get scraped data
+- `GET /api/runs/:id/assertions` - Get assertion results
+- WebSocket `/ws` - Real-time execution updates (5 message types)
 
-### 3. Smart Selectors (`selectors.py`)
-- **Auto-detection Strategy**: Automatically tries CSS → XPath → Text → ARIA selectors until one succeeds
-- **Configuration**: Supports timeout, element state (visible/hidden), and strict mode
-- **Design Decision**: Fallback selector strategy improves reliability when dealing with dynamic web pages
+## WebSocket Message Types
+1. `run_status` - Overall run status updates (pending, running, completed, failed)
+2. `step_update` - Individual step progress with status and results
+3. `scraped_data` - Newly extracted data broadcast immediately
+4. `assertion_result` - Assertion outcomes broadcast immediately
+5. `log` - Execution logs with levels (info, warn, error)
 
-### 4. AI Integration Layer
+## Automation Flow
+1. User submits natural language command
+2. LLM (GPT-5) parses command into structured step plan
+3. Orchestrator creates run and steps in storage
+4. Playwright executor runs each step sequentially:
+   - Uses intelligent locators (no manual selectors)
+   - On failure: broadcasts error, waits 2s, retries once (except assertions)
+   - On success: persists selector metadata, broadcasts results
+   - Extracts/asserts: creates data entities and broadcasts via WebSocket
+5. Frontend receives real-time updates and invalidates queries
+6. Run completes with all steps, scraped data, and assertion results
 
-#### AI Task Generator (`ai_generator.py`)
-- **Purpose**: Converts natural language task descriptions into executable Playwright code
-- **Implementation**: Uses OpenAI GPT models with specialized system prompts
-- **Graceful Degradation**: Framework functions without AI when OpenAI package/API key unavailable
+## Recent Changes
 
-#### Vision Analyzer (`vision_analyzer.py`)
-- **Purpose**: Uses GPT-4 Vision to understand page layouts and locate elements visually
-- **Use Case**: Fallback when traditional selectors fail or for complex visual element detection
-- **Returns**: ElementLocation objects with suggested selectors and confidence scores
+### 2025-01-20: Complete Implementation
+- ✅ Defined complete data schema for automation runs, steps, scraped data, assertions
+- ✅ Built minimal functional frontend with command input, run history, and results display
+- ✅ Configured design tokens for developer-focused utility application
+- ✅ Set up in-memory storage with full CRUD operations
+- ✅ Implemented OpenAI GPT-5 LLM planner for natural language parsing
+- ✅ Built Playwright executor with intelligent element detection (accessibility tree + auto-locators)
+- ✅ Created orchestrator for coordinating LLM + Playwright + WebSocket
+- ✅ Added WebSocket server with 5 message types for real-time updates
+- ✅ Implemented retry/recovery logic with proper error clearing
+- ✅ Fixed selector metadata persistence through storage interface
+- ✅ Added real-time streaming for scraped data and assertions
+- ✅ Connected frontend to backend APIs with TanStack Query
+- ✅ Implemented WebSocket hook with auto-reconnection
 
-### 5. MCP Client (`mcp_client.py`)
-- **Purpose**: Interface to Playwright's Model Context Protocol server
-- **Communication**: Uses stdio-based IPC with the `@playwright/mcp` npm package
-- **Environment Handling**: Includes NixOS-specific environment variable configuration
-- **Design Decision**: Separates MCP communication from core browser automation, allowing the framework to work with or without MCP
+## Testing Recommendations
+- Test natural language commands: "Go to example.com and click the login button"
+- Verify intelligent element detection without manual selectors
+- Confirm real-time updates stream correctly for all data types
+- Test retry logic by inducing transient failures
+- Validate scraping and assertions work end-to-end
+- Check concurrent runs respect single-execution guard
 
-### 6. Advanced Tools (`advanced_tools.py`)
-- **Rich Context Capture**: Provides PageContext dataclass with URL, title, iframe detection, DOM snapshots, and screenshots
-- **Capabilities**: Handles iframes, popups, dynamic content, file operations
-- **Context History**: Maintains history of page states for debugging and analysis
-
-### 7. Session Memory (`session_memory.py`)
-- **Purpose**: Persistent storage of execution history and successful patterns
-- **Storage Format**: JSON-based memory file tracking executions and patterns
-- **Learning**: Records successes and failures to improve future automation attempts
-- **Rationale**: Enables the framework to learn from past executions and avoid repeated mistakes
-
-### 8. Browser Recorder (`recorder.py`)
-- **Purpose**: Records user interactions and generates automation code
-- **Mechanism**: Injects JavaScript into browser to capture DOM events
-- **Storage**: Uses sessionStorage to persist events across page loads
-- **Output**: Generates both natural language commands and Playwright code from recordings
-
-### 9. Interactive Mode (`interactive_mode.py`) 🆕
-- **Purpose**: Rich REPL interface for interactive browser automation
-- **Features**: Natural language commands, real-time metrics, command history, autocomplete
-- **UI/UX**: Beautiful terminal interface with progress indicators and live feedback
-- **Integration**: Seamless integration with EnhancedMCPAutomation for all advanced features
-- **Quick Launch**: `python interactive.py [--gpt4o] [--visible]`
-
-## Configuration System
-
-### Two-Level Configuration
-1. **Browser Config** (`BrowserConfig`): Browser-specific settings (type, headless, viewport, user agent, proxy, etc.)
-2. **Automation Config** (`AutomationConfig`): Framework-level settings (retries, delays, logging, directories)
-
-### Config Loader (`config_loader.py`)
-- **Format**: INI file support with environment variable substitution
-- **Pattern**: Uses `${ENV_VAR}` syntax for sensitive values
-- **Type Safety**: Helper methods for bool and int conversions
-
-## Logging and Error Handling
-
-### Rich Console Integration
-- **Library**: Uses Rich library for beautiful terminal output
-- **Features**: Colored logs, tables, panels, progress indicators
-- **Themes**: Custom theme with info (cyan), warning (yellow), error (red), success (green)
-
-### Error Recovery
-- **Retry Logic**: Tenacity-based exponential backoff for network operations
-- **Screenshots**: Automatic screenshot capture on errors when enabled
-- **Graceful Degradation**: Framework components work independently; missing dependencies don't crash the system
-
-## Entry Points
-
-1. **main.py**: Interactive demo for basic web automation
-2. **nl_automation_mcp.py**: Ultra-enhanced natural language automation with vision, caching, and parallel execution
-3. **interactive.py**: 🎮 **NEW** - Interactive REPL mode with rich UI and real-time metrics
-4. **test_automation.py**: Test suite for framework validation
-
-# External Dependencies
-
-## Python Packages
-- **mcp** (≥1.18.0): Model Context Protocol for Playwright server communication
-- **openai** (≥2.4.0): GPT-4 and GPT-4 Vision API access for AI-powered automation
-- **playwright** (≥1.55.0): Core browser automation library
-- **pydantic** (≥2.12.2): Data validation and settings management
-- **python-dotenv** (≥1.1.1): Environment variable management
-- **rich** (≥14.2.0): Terminal formatting and beautiful console output
-- **tenacity** (≥9.1.2): Retry logic and error handling
-
-## Node.js Packages
-- **@playwright/mcp** (^0.0.43): Playwright MCP server for advanced automation capabilities
-- **playwright** (1.57.0-alpha): Node.js Playwright for MCP server
-- **playwright-core** (1.57.0-alpha): Core Playwright functionality
-
-## External Services
-- **OpenAI API**: Required for AI task generation and vision analysis features
-  - API key configured via `OPENAI_API_KEY` environment variable
-  - Used for: Natural language to code conversion, page structure analysis, element detection
-  - Gracefully disabled when unavailable
-
-## File System Dependencies
-- **Screenshots Directory**: Configurable location for screenshot storage
-- **Videos Directory**: For browser session recordings (when enabled)
-- **Sessions Directory**: For session memory and execution history persistence
-- **Downloads Path**: Optional custom downloads location
-
-## Browser Binaries
-- Playwright automatically downloads browser binaries for Chromium, Firefox, and WebKit
-- Stored in Playwright's cache directory
-- Managed automatically by Playwright installation
-
-## Environment Variables
-- `OPENAI_API_KEY`: Required for AI features
-- `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME`: Optional NixOS environment configuration
+## Future Enhancements
+- Persistent database (PostgreSQL) for production use
+- Multi-step form filling with complex validation
+- Screenshot comparison and visual regression testing
+- Scheduled automation runs
+- API authentication and user management
+- Export to CSV in addition to JSON
+- Advanced LLM reasoning for dynamic page interactions
+- Session persistence across page navigations
