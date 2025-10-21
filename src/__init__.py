@@ -1,1 +1,0 @@
-# Playwright MCP CLI package
