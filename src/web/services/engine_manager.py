@@ -3,8 +3,8 @@ Engine Manager - Orchestrates automation engine selection and fallback
 """
 from typing import Literal, Optional
 from .automation_engine_interface import ExecutionResult
-from .browser_use_engine import BrowserUseAutomationEngine
-from .mcp_engine import MCPAutomationEngine
+from .browser_use import BrowserUseAutomationEngine
+from .playwright_mcp import MCPAutomationEngine
 
 
 EngineMode = Literal["auto", "browser-use", "playwright-mcp"]

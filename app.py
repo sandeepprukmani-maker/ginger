@@ -1,7 +1,7 @@
 """
 Main entry point for the AI Browser Automation web application
 """
-from server import create_app
+from src.web import create_app
 
 if __name__ == '__main__':
     app = create_app()

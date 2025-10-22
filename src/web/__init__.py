@@ -12,7 +12,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.urandom(24)
     
     # Register routes
-    from server.routes import register_routes
+    from src.web.routes import register_routes
     register_routes(app)
     
     return app

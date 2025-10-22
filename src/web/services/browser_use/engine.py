@@ -6,7 +6,7 @@ import asyncio
 from typing import Dict, Any
 from browser_use import Agent, Browser, BrowserProfile
 from langchain_openai import ChatOpenAI
-from .automation_engine_interface import AutomationEngine, ExecutionResult
+from ..automation_engine_interface import AutomationEngine, ExecutionResult
 
 
 class BrowserUseAutomationEngine:

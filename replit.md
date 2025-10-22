@@ -1,107 +1,125 @@
 # AI Browser Automation Agent
 
 ## Overview
-This is an AI-powered browser automation application that uses OpenAI GPT-4o-mini and Playwright to automate web tasks through natural language instructions. The project consists of:
 
-1. **Flask Web Application** (OpenAIWeb/playwright_mcp/) - A web-based interface for browser automation
-2. **CLI Tool** (OpenAIWeb/OpenAIWeb/) - A command-line interface for browser automation
+A professional-grade AI browser automation platform that combines OpenAI's language models with two automation engines: browser-use (langchain-based) and Playwright MCP (Model Context Protocol). The system provides both a web interface and CLI tools for executing browser automation tasks via natural language instructions.
 
-The web application is the primary user-facing component, providing an intuitive interface to give instructions to an AI agent that can browse websites, click elements, fill forms, and perform other browser tasks.
-
-## Project Architecture
-
-### Frontend (Flask Web App)
-- **Location**: `OpenAIWeb/playwright_mcp/`
-- **Framework**: Flask (Python)
-- **Port**: 5000
-- **Features**:
-  - Web UI for entering browser automation instructions
-  - **Dual-engine selection**: Choose between browser-use, Playwright MCP, or auto (with fallback)
-  - **Headless/Headful mode toggle**: Run browser visibly or invisibly
-  - **Automatic fallback**: browser-use → Playwright MCP on failure
-  - Real-time execution results with engine metadata
-  - Export functionality to generate Playwright code (Python/JavaScript)
-  - Health check endpoint
-
-### Backend Components
-- **Engine Manager**: Orchestrates engine selection and fallback logic (`server/services/engine_manager.py`)
-- **Browser-use Adapter**: Direct integration with browser-use library (`server/services/browser_use_engine.py`)
-- **MCP Adapter**: Integration with Playwright MCP server (`server/services/mcp_engine.py`)
-- **MCP Server**: Node.js-based Playwright MCP server (`mcp/`)
-- **OpenAI Integration**: Uses GPT-4o-mini for natural language understanding
-
-## Recent Changes (October 22, 2025)
-
-### Dual-Engine Architecture Implementation
-1. **New UI with Engine Selection**: Added dropdown to choose between:
-   - Auto mode (browser-use with MCP fallback)
-   - Browser-use only
-   - Playwright MCP only
-2. **Headless/Headful Toggle**: Users can now run browser in visible mode for debugging
-3. **Engine Manager Service**: Orchestrates execution with automatic fallback logic
-4. **Modular Adapters**: 
-   - BrowserUseAutomationEngine: Wraps browser-use library
-   - MCPAutomationEngine: Wraps Playwright MCP server
-5. **Priority System**: browser-use runs first, automatically falls back to MCP on failure
-6. **Enhanced Results Display**: Shows which engine executed the task and if fallback occurred
-
-### Initial Replit Setup
-1. Removed hardcoded OpenAI API key from code (security fix)
-2. Installed Python 3.11 and Node.js dependencies
-3. Installed Playwright browsers (Chromium) and system dependencies
-4. Created .gitignore to prevent committing secrets
-5. Configured Flask app to run on port 5000 with 0.0.0.0 host (Replit-compatible)
-6. Set up workflow for Flask application
-7. Configured VM deployment for production (required for browser automation)
-8. Verified application is working correctly
+The platform features intelligent engine fallback, self-healing code generation capabilities, and can convert AI-driven automations into maintainable Playwright scripts.
 
 ## User Preferences
-- None specified yet
 
-## Dependencies
+Preferred communication style: Simple, everyday language.
 
-### Python Packages
-- flask (web framework)
-- openai (AI integration)
-- playwright (browser automation)
-- requests, sseclient-py (HTTP communication)
-- browser-use (AI browser automation library)
-- langchain-openai (AI integration)
-- python-dotenv (environment variable management)
+## System Architecture
 
-### Node.js Packages
-- @playwright/mcp (Playwright MCP server)
-- playwright, playwright-core (browser automation)
-- @modelcontextprotocol/sdk (MCP SDK)
+### Application Structure
 
-### System Dependencies
-- Chromium browser with required system libraries
-- X11, Mesa, Pango, Cairo, and other graphics libraries
+**Dual-Interface Design**
+- **Web Application**: Flask-based server providing REST API and browser UI for interactive automation
+- **CLI Tools**: Direct command-line access for automation execution and code generation
 
-## Environment Variables
-- `OPENAI_API_KEY`: Required for AI functionality (stored in Replit Secrets)
+The application uses a clean separation between web serving (`src/web/`) and core automation logic (`src/automation/`).
 
-## How to Use
+### Automation Engine Architecture
 
-### Web Interface
-1. The application runs automatically at port 5000
-2. Enter a natural language instruction (e.g., "Go to google.com and search for Playwright MCP")
-3. Click "Execute" to run the automation
-4. View results in the right panel
-5. Optionally export the automation as Playwright code
+**Multi-Engine Strategy with Intelligent Fallback**
 
-### CLI Tool
-Located in `OpenAIWeb/OpenAIWeb/main.py`:
-```bash
-python OpenAIWeb/OpenAIWeb/main.py "your instruction here"
-```
+The system implements three execution modes managed by `EngineManager`:
 
-## Deployment
-- **Type**: VM deployment (always-on)
-- **Reason**: Browser automation requires persistent processes and state management
-- **Command**: `python OpenAIWeb/playwright_mcp/main.py`
+1. **Auto Mode** (Default): Attempts browser-use first, falls back to Playwright MCP on failure
+2. **Browser-use Mode**: Uses langchain + OpenAI for AI-driven browser automation
+3. **Playwright MCP Mode**: Uses Model Context Protocol with structured tool calling
 
-## Notes
-- The application uses Playwright in headless mode for browser automation
-- MCP server is initialized lazily on first use to optimize startup time
-- Flask development server is used (consider production WSGI server for heavy loads)
+**Rationale**: Different automation tasks have different characteristics. Browser-use excels at complex, multi-step workflows with natural language understanding, while Playwright MCP provides more structured, reliable execution for simpler tasks. The fallback mechanism ensures high success rates.
+
+**Engine Implementations**:
+- `BrowserUseAutomationEngine`: Wraps browser-use library with langchain's ChatOpenAI
+- `MCPAutomationEngine`: Integrates Playwright MCP via subprocess communication and BrowserAgent for OpenAI-based instruction interpretation
+
+### Self-Healing Code Generation
+
+**Two-Phase Approach**:
+
+1. **Code Generation Phase**: `PlaywrightCodeGenerator` converts browser-use action history into reusable Playwright Python scripts with multiple fallback locator strategies
+2. **Self-Healing Execution Phase**: `SelfHealingExecutor` runs generated code and uses browser-use AI to fix failed locators in real-time
+
+**Design Decision**: Generated code includes multiple locator strategies (text, role, label-based) to reduce brittleness. When all strategies fail during execution, the AI intervenes in the same browser session to locate and interact with elements, then records the successful strategy for future use.
+
+**Trade-offs**:
+- Pro: Generated scripts are more maintainable than pure AI automation
+- Pro: Self-healing reduces maintenance burden when pages change
+- Con: Adds latency during healing attempts (mitigated by max 3 attempts)
+
+### Frontend Architecture
+
+**Technology**: Vanilla JavaScript with async/await for API communication
+
+**Design Pattern**: Single-page application with client-side rendering
+- Event-driven interaction model
+- RESTful API consumption via fetch
+- Real-time status updates and result display
+
+**Rationale**: Keeps frontend lightweight and avoids build tooling complexity while maintaining professional UX.
+
+### Communication Protocols
+
+**MCP Integration via STDIO**
+
+The Playwright MCP server runs as a subprocess with JSON-RPC communication over stdin/stdout:
+- `MCPStdioClient` manages subprocess lifecycle and bidirectional communication
+- Threading model: separate threads for reading stdout and stderr
+- Request/response correlation via ID-based pending request tracking
+
+**Design Decision**: STDIO transport chosen over HTTP for:
+- Simpler deployment (no port management)
+- Tighter process coupling (server dies with client)
+- Lower latency for tool calls
+
+### Configuration Management
+
+Uses INI file (`config.ini`) for:
+- OpenAI API keys and model selection
+- Browser preferences (headless mode, browser type)
+- MCP capabilities configuration
+
+**Security Note**: Code warns against committing API keys and recommends environment variables for production.
+
+## External Dependencies
+
+### AI Services
+- **OpenAI API**: Required for both automation engines
+  - browser-use uses via langchain's `ChatOpenAI` wrapper
+  - Playwright MCP uses via native `OpenAI` client
+  - Default model: `gpt-4o-mini` (explicitly specified, not to be changed without user request)
+
+### Browser Automation
+- **browser-use**: AI-powered automation library (v0.5.9+) using langchain
+- **Playwright**: Core browser automation (v1.57.0-alpha)
+- **Playwright MCP Server** (`@playwright/mcp`): Model Context Protocol implementation for Playwright
+  - Runs as Node.js subprocess via `tools/mcp-server/cli.js`
+  - Provides structured browser tools via MCP
+
+### Web Framework
+- **Flask**: Python web server for REST API and template serving
+- No database required (stateless design)
+
+### Python Dependencies
+- `langchain-openai`: LangChain's OpenAI integration
+- `playwright`: Browser automation library
+- `openai`: Official OpenAI Python client
+- `browser-use`: Natural language browser automation
+
+### Node.js Dependencies (MCP Server)
+- `playwright`: Playwright Node.js package
+- `playwright-core`: Core Playwright engine
+- `@modelcontextprotocol/sdk`: MCP protocol implementation
+- Various express/CORS middleware for MCP server capabilities
+
+### Browser Requirements
+- Chromium browser (detected via environment variable `CHROMIUM_PATH` or system PATH)
+- Supports Chrome, Chromium, or chromium-browser binaries
+
+### Configuration Files
+- `config.ini`: Application configuration (API keys, browser settings)
+- `package.json`: Node.js MCP server dependencies and metadata
+- No database schema files (application is stateless)

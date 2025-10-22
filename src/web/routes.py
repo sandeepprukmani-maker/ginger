@@ -2,7 +2,7 @@
 Flask Routes for Browser Automation
 """
 from flask import render_template, request, jsonify
-from server.services.engine_manager import EngineManager
+from src.web.services.engine_manager import EngineManager
 import re
 from datetime import datetime
 

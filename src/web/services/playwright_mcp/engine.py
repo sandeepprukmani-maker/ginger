@@ -2,8 +2,8 @@
 Playwright MCP automation engine adapter
 """
 from typing import Dict, Any
-from .mcp_client import MCPStdioClient
-from .automation_engine_interface import AutomationEngine, ExecutionResult
+from .client import MCPStdioClient
+from ..automation_engine_interface import AutomationEngine, ExecutionResult
 from .browser_agent import BrowserAgent
 
 
