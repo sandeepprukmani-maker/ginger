@@ -1,0 +1,146 @@
+"""
+Browser-Use Engine
+AI-powered browser automation using browser-use library
+
+Thread Safety Notes:
+- This engine creates a fresh Browser instance per request
+- Each request runs on its own event loop to ensure thread safety
+- Browser instances are NOT cached to prevent asyncio loop affinity issues
+- Memory is cleaned up after each request via finally block
+"""
+import os
+import asyncio
+from typing import Dict, Any, List
+from browser_use import Agent, Browser, BrowserConfig
+from langchain_openai import ChatOpenAI
+
+
+class BrowserUseEngine:
+    """
+    Browser automation engine using browser-use library
+    
+    Thread Safety: This engine is designed for Flask's multi-threaded environment.
+    Each request creates its own event loop and browser instance, which are
+    properly cleaned up after execution.
+    """
+    
+    def __init__(self, headless: bool = False):
+        """
+        Initialize Browser-Use Engine
+        
+        Args:
+            headless: Run browser in headless mode
+        """
+        self.headless = headless
+        
+        # Get API key from environment
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY environment variable must be set")
+        
+        # Initialize LLM (stateless, safe to reuse)
+        self.llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            api_key=api_key
+        )
+    
+    async def execute_instruction(self, instruction: str) -> Dict[str, Any]:
+        """
+        Execute a natural language instruction
+        
+        Args:
+            instruction: User's natural language instruction
+            
+        Returns:
+            Dictionary with execution results and steps taken
+        """
+        # Create a fresh browser instance for this request
+        # This ensures each request has its own event loop and browser
+        browser = None
+        try:
+            # Create browser config
+            config = BrowserConfig(
+                headless=self.headless,
+                disable_security=False,
+                extra_chromium_args=[]
+            )
+            browser = Browser(config=config)
+            
+            # Create agent with the instruction
+            agent = Agent(
+                task=instruction,
+                llm=self.llm,
+                browser=browser,
+            )
+            
+            # Execute the task
+            history = await agent.run()
+            
+            # Parse history into steps
+            steps = []
+            for i, item in enumerate(history.history):
+                step = {
+                    "tool": "browser_use_action",
+                    "arguments": {"action": str(item.get('model_output', ''))},
+                    "success": True,
+                    "result": {
+                        "state": str(item.get('state', '')),
+                        "step_number": i + 1
+                    }
+                }
+                steps.append(step)
+            
+            return {
+                "success": True,
+                "message": f"Task completed successfully. Executed {len(steps)} steps.",
+                "steps": steps,
+                "iterations": len(steps),
+                "final_result": history.final_result() if hasattr(history, 'final_result') else None
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "steps": [],
+                "iterations": 0
+            }
+        finally:
+            # Always close the browser to free resources
+            if browser:
+                try:
+                    await browser.close()
+                except:
+                    pass
+    
+    def execute_instruction_sync(self, instruction: str) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for execute_instruction
+        Each call creates a new event loop to ensure thread safety
+        
+        Args:
+            instruction: User's natural language instruction
+            
+        Returns:
+            Dictionary with execution results
+        """
+        try:
+            # Always create a fresh event loop for this request
+            # This ensures thread safety in Flask's multi-threaded environment
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                # Run the async function with the fresh loop
+                return loop.run_until_complete(self.execute_instruction(instruction))
+            finally:
+                # Clean up the event loop
+                loop.close()
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Sync execution error: {str(e)}",
+                "steps": [],
+                "iterations": 0
+            }
