@@ -1,9 +1,0 @@
-[browser]
-# Run browser in headless mode (true/false)
-headless = true
-
-# Browser to use (chromium, firefox, webkit)
-browser = chromium
-
-# Comma-separated capabilities to enable (e.g., "vision,testing,tracing")
-capabilities = testing
