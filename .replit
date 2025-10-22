@@ -1,0 +1,43 @@
+modules = ["nodejs-20", "web", "python-3.11"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["gitFull", "playwright-driver", "xorg.libX11", "xorg.libxcb", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXfixes", "mesa", "pango", "cairo", "alsa-lib", "nss", "nspr", "atk", "at-spi2-atk", "cups", "libxkbcommon"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask App"
+
+[[workflows.workflow]]
+name = "Flask App"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd OpenAIWeb/playwright_mcp && python main.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 36339
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "vm"
+run = ["python", "OpenAIWeb/playwright_mcp/main.py"]
