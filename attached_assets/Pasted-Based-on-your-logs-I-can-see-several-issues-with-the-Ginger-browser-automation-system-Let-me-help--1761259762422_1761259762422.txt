@@ -1,0 +1,193 @@
+Based on your logs, I can see several issues with the Ginger browser automation system. Let me help you troubleshoot and fix these problems:
+
+## Issues Identified:
+
+1. **Browser-use service initialization error** - `BrowserSession.__init__() got an unexpected keyword argument 'config'`
+2. **Browser startup timeout** - Browser fails to launch within 30 seconds
+3. **MCP server not found** - `npx` command fails on Windows
+4. **Database session error** - SQLAlchemy session management issue
+
+## Solutions:
+
+### 1. Fix Browser-Use Service Compatibility
+
+The main issue appears to be compatibility problems with the `browser-use` library. Update your `browser_use_service.py`:
+
+```python
+# Fix the BrowserSession initialization
+try:
+    # Try newer API first
+    self.agent = Agent(
+        task=instruction,
+        llm=self.llm,
+        headless=headless
+    )
+except TypeError as e:
+    # Fallback to older API
+    self.agent = Agent(
+        task=instruction,
+        llm=self.llm
+    )
+```
+
+### 2. Increase Browser Startup Timeout
+
+Modify the browser configuration to handle slower systems:
+
+```python
+# In your browser configuration
+browser_config = {
+    'headless': headless,
+    'timeout': 60000,  # 60 seconds instead of 30
+    'slow_mo': 1000,   # Add delay between actions
+}
+```
+
+### 3. Fix MCP Server Installation
+
+The MCP server requires Node.js and npm. Install them first:
+
+```powershell
+# Install Node.js from https://nodejs.org/
+# Then install Playwright MCP globally
+npm install -g @playwright/mcp
+
+# Or use local installation in your project
+npm init -y
+npm install @playwright/mcp
+```
+
+Update your MCP service to use the locally installed version:
+
+```python
+# In mcp_service.py
+import subprocess
+import os
+
+def start_mcp_server(self):
+    try:
+        # Try global installation first
+        process = subprocess.Popen(
+            ['npx', '@playwright/mcp', '--headless'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+    except FileNotFoundError:
+        # Fallback to local node_modules
+        local_mcp = os.path.join(os.getcwd(), 'node_modules', '.bin', 'mcp')
+        if os.path.exists(local_mcp):
+            process = subprocess.Popen(
+                [local_mcp, '--headless'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+```
+
+### 4. Fix Database Session Management
+
+Update your database session handling in `healing_orchestrator.py`:
+
+```python
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+def execute_with_healing(self, task_id, instruction, max_retries=2):
+    session = self.Session()
+    try:
+        task = session.query(Task).filter(Task.id == task_id).first()
+        if not task:
+            raise ValueError(f"Task {task_id} not found")
+        
+        # Your healing logic here
+        # ...
+        
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+```
+
+### 5. Alternative: Use Direct Playwright Instead of Browser-Use
+
+If browser-use continues to fail, implement a direct Playwright solution:
+
+```python
+from playwright.async_api import async_playwright
+
+async def execute_with_playwright(instruction, headless=True):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=headless,
+            timeout=60000
+        )
+        page = await browser.new_page()
+        
+        try:
+            # Simple instruction parsing
+            if 'google.com' in instruction and 'search' in instruction:
+                await page.goto('https://google.com')
+                search_term = instruction.split('search for')[-1].strip()
+                await page.fill('input[name="q"]', search_term)
+                await page.press('input[name="q"]', 'Enter')
+                await page.wait_for_timeout(5000)
+            
+            # Take screenshot as proof
+            await page.screenshot(path=f'result_{int(time.time())}.png')
+            return "Task completed successfully"
+            
+        finally:
+            await browser.close()
+```
+
+### 6. Environment Setup Script
+
+Create a setup script to ensure all dependencies are installed:
+
+```powershell
+# setup.ps1
+Write-Host "Setting up Ginger Browser Automation..." -ForegroundColor Green
+
+# Check Node.js
+if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Host "Please install Node.js from https://nodejs.org/" -ForegroundColor Red
+    exit 1
+}
+
+# Install Playwright MCP
+Write-Host "Installing Playwright MCP..." -ForegroundColor Yellow
+npm install -g @playwright/mcp
+
+# Install Python dependencies
+Write-Host "Installing Python dependencies..." -ForegroundColor Yellow
+pip install -r requirements.txt
+
+# Install Playwright browsers
+Write-Host "Installing Playwright browsers..." -ForegroundColor Yellow
+playwright install chromium
+
+Write-Host "Setup complete!" -ForegroundColor Green
+```
+
+### 7. Immediate Workaround
+
+For immediate testing, you can modify the task to use a simpler approach. Edit your task creation to use a more basic instruction:
+
+```python
+# Instead of complex instructions, start with simple ones
+simple_instructions = [
+    "Navigate to example.com and take a screenshot",
+    "Go to google.com and wait for page load",
+]
+```
+
+## Quick Fix Summary:
+
+1. **Run the setup script above** to ensure all dependencies are installed
+2. **Update the browser-use service** to handle API compatibility
+3. **Increase timeouts** in browser configuration
+4. **Use direct Playwright** as a fallback if browser-use continues to fail
+
+Try these fixes and the system should be more stable. The main issue appears to be the `browser-use` library compatibility and browser startup timing on your system.

@@ -1,0 +1,168 @@
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Try the new cross-platform PowerShell https://aka.ms/pscore6
+
+(.venv) PS C:\Users\Sandeep\Downloads\ginger (1) 2\ginger> npm install -g @playwright/mcp
+
+changed 3 packages in 5s
+(.venv) PS C:\Users\Sandeep\Downloads\ginger (1) 2\ginger> python .\main.py              
+INFO     [application] Starting Self-Healing Browser Automation System
+INFO     [werkzeug]  * Restarting with stat
+INFO     [application] Starting Self-Healing Browser Automation System
+WARNING  [werkzeug]  * Debugger is active!
+INFO     [werkzeug]  * Debugger PIN: 897-783-920
+(22348) wsgi starting up on http://127.0.0.1:5300
+(22348) accepted ('127.0.0.1', 65232)
+127.0.0.1 - - [24/Oct/2025 04:19:57] "GET /socket.io/?EIO=4&transport=polling&t=PeJGxfU HTTP/1.1" 200 300 0.000000
+INFO     [application] Client connected
+127.0.0.1 - - [24/Oct/2025 04:19:57] "POST /socket.io/?EIO=4&transport=polling&t=PeJGxhh&sid=TL3-k_CrjNumLkVJAAAA HTTP/1.1" 200 219 0.001000
+(22348) accepted ('127.0.0.1', 65246)
+(22348) accepted ('127.0.0.1', 65247)
+127.0.0.1 - - [24/Oct/2025 04:19:57] "GET /socket.io/?EIO=4&transport=polling&t=PeJGxhh.0&sid=TL3-k_CrjNumLkVJAAAA HTTP/1.1" 200 181 0.001002
+127.0.0.1 - - [24/Oct/2025 04:19:57] "GET /socket.io/?EIO=4&transport=polling&t=PeJGxhl&sid=TL3-k_CrjNumLkVJAAAA HTTP/1.1" 200 181 0.000000
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET / HTTP/1.1" 200 12259 0.009001
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /static/css/style.css HTTP/1.1" 304 202 0.075015
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /static/js/app.js HTTP/1.1" 304 200 0.001004
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /socket.io/?EIO=4&transport=polling&t=PeJGyTT HTTP/1.1" 200 300 0.000000
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /api/tasks HTTP/1.1" 200 169 0.005999
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /api/stats HTTP/1.1" 200 383 0.018006
+(22348) accepted ('127.0.0.1', 65255)
+(22348) accepted ('127.0.0.1', 65256)
+INFO     [application] Client connected
+127.0.0.1 - - [24/Oct/2025 04:20:00] "POST /socket.io/?EIO=4&transport=polling&t=PeJGyUB&sid=pWXvirGFHdr0FPevAAAC HTTP/1.1" 200 219 0.000998
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /socket.io/?EIO=4&transport=polling&t=PeJGyUC&sid=pWXvirGFHdr0FPevAAAC HTTP/1.1" 200 262 0.000000
+127.0.0.1 - - [24/Oct/2025 04:20:00] "GET /socket.io/?EIO=4&transport=polling&t=PeJGyUb&sid=pWXvirGFHdr0FPevAAAC HTTP/1.1" 200 181 0.000000
+127.0.0.1 - - [24/Oct/2025 04:20:04] "GET /api/stats HTTP/1.1" 200 383 0.005002
+127.0.0.1 - - [24/Oct/2025 04:20:10] "GET /api/stats HTTP/1.1" 200 383 0.004019
+INFO     [application] Task 1 created: go to google.com search for dogs. (headless=False)
+INFO     [app.services.healing_orchestrator] Starting execution of task 1: go to google.com search for dogs.
+INFO     [app.services.browser_use_service] Browser-use service initialized with wrapped ChatOpenAI
+INFO     [app.services.browser_use_service] Initializing browser in headless mode
+INFO     [app.services.browser_use_service] Browser-use service initialized successfully with 120s timeout
+INFO     [app.services.browser_use_service] Executing instruction: go to google.com search for dogs.
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/telemetry.
+127.0.0.1 - - [24/Oct/2025 04:20:20] "GET /api/stats HTTP/1.1" 200 383 0.007003
+INFO     [Agent] 🔗 Found URL in task: https://google.com, adding as initial action...
+INFO     [Agent] 🎯 Task: go to google.com search for dogs.                                                                                                                                                                         
+
+IMPORTANT: Complete ONLY the instruction given above and then STOP immediately. Do not perform any additional actions like extracting data, scrolling further, or navigating to other pages unless explicitly requested in the instruction. You can make any auxiliary decisions needed to complete the instruction itself (like handling popups, accepting cookies, etc.), but do not go beyond what was asked.
+INFO     [Agent] Starting a browser-use agent with version 0.9.0, with provider=openai and model=gpt-4o-mini
+WARNING  [bubus] ⚠️ EventBus_46579602🟢(⏳ 0 | ▶️ 2 | ✅ 0 ➡️ 30 👂) handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(?▶ BrowserStartEvent#b049 🏃)
+WARNING  [bubus] ⚠️ EventBus_46579602🟢(⏳ 0 | ▶️ 2 | ✅ 0 ➡️ 30 👂) handler browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent() has been running for >15s on event. Possible slow processing or deadlock k.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent(?▶ BrowserLaunchEvent#8579 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 30.0s for EventBus_46579602.browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(?▶ BrowserStartEvent#b049 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStartEvent#b049                                              30s                                                                                                                                         
+WARNING  [bubus]    ⏰ browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent(#b049) ⌛️ 30s/30s   ⬅️ TIMEOUT HERE ⏰
+WARNING  [bubus]       📣 BrowserLaunchEvent#8579                                       30s                                                                                                                                         
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserLaunchEvent(#8579)     0s/30s   ✓
+WARNING  [bubus]          ➡️ browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent(#8579) ⏳ 30s/30s   ⬅️ INTERRUPTED ✂️
+WARNING  [bubus]
+================================================================================
+
+ERROR    [Agent] Agent run failed with exception: Event handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent#8336(?▶ BrowserStartEvent#b049 🏃) timed out after 30.0s and interrupted any processing of 1 child events
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\tasks.py", line 476, in wait_for
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\tasks.py", line 500, in wait_for
+    return fut.result()
+           ^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\watchdog_base.py", line 108, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\session.py", line 532, in on_BrowserStartEvent
+    await launch_event
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\models.py", line 313, in wait_for_handlers_to_complete_then_return_event
+    await bus.process_event(event)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 976, in process_event
+    await self._execute_handlers(event, handlers=applicable_handlers, timeout=timeout)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1174, in execute_handler
+    raise handler_interrupted_error from e
+asyncio.exceptions.CancelledError: Event handler browser_use.browser.watchdog_base.LocalBrowserWatchdog.on_BrowserLaunchEvent#1328(?▶ BrowserLaunchEvent#8579 🏃) was interrupted because of a parent timeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\tasks.py", line 502, in wait_for
+    raise exceptions.TimeoutError() from exc
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\agent\service.py", line 1524, in run
+    await self.browser_session.start()
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\session.py", line 459, in start
+    await start_event.event_result(raise_if_any=True, raise_if_none=False)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\models.py", line 516, in event_results_filtered
+    raise original_error
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\models.py", line 490, in event_results_filtered
+    await event_result
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.BrowserSession.on_BrowserStartEvent#8336(?▶ BrowserStartEvent#b049 🏃) timed out after 30.0s and interrupted any processing of 1 child events
+ERROR    [BrowserSession] 🚌 [StorageStateWatchdog.on_SaveStorageStateEvent(#fea4)] ❌ Failed (0.00s): AssertionError: CDP URL not set - browser may not be configured or launched yet
+ERROR    [BrowserSession] 🚌 [StorageStateWatchdog.on_SaveStorageStateEvent(#fea4)] ❌ CDP connected but failed to re-create CDP session after error "AssertionError: CDP URL not set - browser may not be configured or launched yeet" in on_SaveStorageStateEvent(SaveStorageStateEvent#fea4): due to AssertionError: CDP URL not set - browser may not be configured or launched yet
+
+ERROR    [bubus] ❌ EventBus_46579602🟢(⏳ 0 | ▶️ 0 | ✅ 3 ➡️ 30 👂) Error in event handler browser_use.browser.watchdog_base.StorageStateWatchdog.on_SaveStorageStateEvent(?▶ SaveStorageStateEvent#fea4 ✅) ->
+AssertionError(CDP URL not set - browser may not be configured or launched yet)
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\bubus\service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\tasks.py", line 489, in wait_for
+    return fut.result()
+           ^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\watchdog_base.py", line 108, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\watchdogs\storage_state_watchdog.py", line 73, in on_SaveStorageStateEvent
+    await self._save_storage_state(path)
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\watchdogs\storage_state_watchdog.py", line 168, in _save_storage_state
+    assert await self.browser_session.get_or_create_cdp_session(target_id=None, new_socket=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\.venv\Lib\site-packages\browser_use\browser\session.py", line 1052, in get_or_create_cdp_session
+    assert self.cdp_url is not None, 'CDP URL not set - browser may not be configured or launched yet'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: CDP URL not set - browser may not be configured or launched yet
+
+WARNING  [bubus] ⌛️ EventBus_46579602🟢(⏳ 0 | ▶️ 0 | ✅ 5 ➡️ 30 👂) Timeout waiting for event bus to be idle after 5s (processing: 0)
+ERROR    [app.services.browser_use_service] Task execution timed out after 3 minutes
+INFO     [application] Client disconnected
+WARNING  [app.services.healing_orchestrator] Initial execution failed, attempting healing: Task execution timed out. The browser may be slow to start on your system. Please ensure Playwright browsers are installed.
+INFO     [app.services.healing_orchestrator] Starting healing flow for task 1
+INFO     [app.services.healing_orchestrator] Attempting browser-use healing, retry 1/2
+INFO     [app.services.browser_use_service] Executing instruction: go to google.com search for dogs.
+INFO     [Agent] 🔗 Found URL in task: https://google.com, adding as initial action...
+INFO     [Agent] 🎯 Task: go to google.com search for dogs.                                                                                                                                                                         

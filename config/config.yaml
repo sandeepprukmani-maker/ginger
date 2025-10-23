@@ -1,0 +1,35 @@
+healing:
+  max_retries: 3
+  browser_use_retry_limit: 2
+  mcp_retry_limit: 2
+  timeout_seconds: 30
+  
+browser:
+  headless: true
+  viewport_width: 1920
+  viewport_height: 1080
+  default_timeout: 60000
+  launch_timeout: 180000
+  browser_launch_timeout: 180
+  slow_mo: 100
+  
+mcp:
+  server_startup_timeout: 10
+  command_timeout: 60
+  browser: "chromium"
+  capabilities: []
+  
+execution:
+  max_concurrent_tasks: 3
+  step_delay_ms: 500
+  screenshot_on_error: true
+  
+logging:
+  level: "INFO"
+  file: "logs/automation.log"
+  max_file_size: 10485760
+  backup_count: 5
+  
+export:
+  script_directory: "data/generated_scripts"
+  action_log_directory: "data/action_logs"
