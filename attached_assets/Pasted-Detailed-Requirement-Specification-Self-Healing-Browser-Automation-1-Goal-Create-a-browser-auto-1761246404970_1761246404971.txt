@@ -1,0 +1,147 @@
+Detailed Requirement Specification – Self-Healing Browser Automation
+
+1. Goal
+
+Create a browser automation system that:
+	•	Executes natural language instructions using browser-use.
+	•	Updates failed locators in real-time using AI.
+	•	Falls back to Playwright MCP if browser-use cannot fix a failed step.
+	•	Updates generated code/logs with healed locators to produce fully stable Playwright scripts over time.
+	•	Ensures minimal human intervention and supports CI/CD execution.
+
+⸻
+
+2. Components
+
+Component	Purpose
+Browser-Use Executor	Initial execution of instructions; generates action steps and locators.
+Step Failure Monitor	Detects failed steps (element not found, timeout, etc.).
+Healing Orchestrator	Routes failed steps to browser-use healing or Playwright MCP healing.
+Locator Store / Action Log	Persists all steps, locators, and healing history.
+Playwright MCP	Secondary AI healer; generates native Playwright locators for failed steps.
+Code Updater	Updates generated code/scripts with healed locators automatically.
+Reporting Module	Tracks healed steps, source of healing (browser-use or MCP), and locator stability.
+
+
+⸻
+
+3. Execution Flow
+
+Phase 1: Initial Automation
+	1.	User provides a natural language instruction.
+	2.	browser-use executes all steps.
+	3.	Action log records:
+	•	Step ID
+	•	URL or page context
+	•	Action type (click, fill, select, etc.)
+	•	Locator used
+	•	Execution status (success/failure)
+
+Phase 2: Failure Detection
+	1.	Each step monitors for:
+	•	Element not found
+	•	Timeout
+	•	Page changes affecting the element
+	2.	Failed steps are flagged for healing.
+
+Phase 3: Step Healing
+	1.	First Attempt: Browser-Use Healing
+	•	Only the failed step is executed by browser-use.
+	•	If successful:
+	•	Locator is updated in Action Log.
+	•	Generated code is automatically updated.
+	•	Execution resumes with remaining steps.
+	2.	Second Attempt: Playwright MCP Healing
+	•	If browser-use fails to heal:
+	•	MCP generates a native Playwright locator for the failed step.
+	•	Executes the step using this locator.
+	•	Updates Action Log and generated code with the healed locator.
+	•	Execution continues with remaining steps.
+
+Phase 4: Logging & Reporting
+	•	All healed locators are recorded with:
+	•	Step ID
+	•	Original locator
+	•	New locator
+	•	Healing source (browser-use or MCP)
+	•	Timestamp
+	•	Generate daily/weekly reports on locator stability and healing success.
+
+Phase 5: Optional Post-Processing
+	•	After enough steps are stabilized, transform healed Action Log into a fully Playwright-native script.
+	•	Future runs can execute without relying on browser-use if desired.
+
+⸻
+
+4. Healing Logic / Policies
+
+Condition	Healing Priority
+Locator not found / timeout	Browser-Use healing first
+Step fails repeatedly (>2 attempts)	MCP healing
+Page DOM shifted / element replaced	MCP healing
+Step succeeds but locator is fragile	Record and monitor for future stability
+Step fails after MCP healing	Escalate to human review
+
+
+⸻
+
+5. Data Storage
+	1.	Action Log
+	•	JSON or DB format
+	•	Each entry contains:
+	•	Step ID
+	•	Action type
+	•	Original locator
+	•	Current locator
+	•	Status (success/fail)
+	•	Healing source
+	•	Timestamp
+	2.	Generated Code
+	•	Python or JS script with all current locators.
+	•	Updated automatically whenever a locator is healed.
+	3.	Reporting
+	•	Logs healed steps, source of healing, and statistics.
+	•	Optional: health dashboard for CI/CD.
+
+⸻
+
+6. Environment / Setup Requirements
+	•	Python >= 3.10 or Node.js >= 18
+	•	Packages:
+	•	browser-use
+	•	playwright
+	•	playwright-mcp
+	•	requests or aiohttp (for orchestrator)
+	•	tinydb / sqlite / JSON for Action Log
+	•	Configuration:
+	•	.env for API keys (if required for MCP or browser-use)
+	•	YAML/JSON config for:
+	•	Retry thresholds
+	•	Healing priority
+	•	Timeout settings
+
+⸻
+
+7. Deliverables
+	1.	Self-Healing Automation System:
+	•	Supports natural language input.
+	•	Executes initial automation via browser-use.
+	•	Performs step-level healing via browser-use first, MCP second.
+	•	Updates logs and generated code automatically.
+	2.	Action Log & Locator Store:
+	•	Stores all executed steps and healing history.
+	3.	Code Updater:
+	•	Updates Python/JS scripts with healed locators.
+	4.	Reports & Dashboards:
+	•	Statistics on step healing, success rate, and locator stability.
+	5.	Optional Playwright Script Export:
+	•	Full Playwright-native script generated from stabilized healed steps.
+
+⸻
+
+8. Success Criteria
+	•	Automated steps execute successfully with minimal human intervention.
+	•	Failed locators are automatically healed in real-time.
+	•	Generated code always contains the latest working locators.
+	•	Future runs are stable and reliable.
+	•	Reports accurately track all healing activities and their sources.
