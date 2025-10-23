@@ -3,19 +3,24 @@ Browser-Use Codebase
 AI-powered browser automation using browser-use library with LLM reasoning
 """
 from browser_use_codebase.engine import BrowserUseEngine
+from browser_use_codebase.engine_optimized import OptimizedBrowserUseEngine
 
 
-def create_engine(headless: bool = False):
+def create_engine(headless: bool = False, use_optimized: bool = True):
     """
     Factory function to create a Browser-Use engine instance
     
     Args:
         headless: Run browser in headless mode
+        use_optimized: Use optimized engine with advanced features (default: True)
         
     Returns:
-        BrowserUseEngine instance
+        BrowserUseEngine or OptimizedBrowserUseEngine instance
     """
-    return BrowserUseEngine(headless=headless)
+    if use_optimized:
+        return OptimizedBrowserUseEngine(headless=headless, enable_advanced_features=True)
+    else:
+        return BrowserUseEngine(headless=headless)
 
 
-__all__ = ['BrowserUseEngine', 'create_engine']
+__all__ = ['BrowserUseEngine', 'OptimizedBrowserUseEngine', 'create_engine']

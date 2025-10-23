@@ -43,7 +43,15 @@ The `EngineOrchestrator` serves as the central coordinator:
 - Leverages OpenAI LLMs for autonomous reasoning
 - Thread safety: Creates fresh browser instance per request with isolated event loops
 - No instance caching to prevent asyncio loop affinity issues
-- Design rationale: Maximizes autonomy for complex multi-step workflows
+- **OPTIMIZED VERSION** (`engine_optimized.py`): Enhanced with advanced features (default)
+  - Screenshot capture and PDF generation
+  - Cookie and session management for authentication persistence
+  - Smart retry mechanism with exponential backoff
+  - Workflow state management with checkpoints
+  - Data extraction (tables, lists, structured data)
+  - Performance monitoring and metrics tracking
+  - Enhanced popup handling with configurable timeouts
+- Design rationale: Maximizes autonomy for complex multi-step workflows with enterprise-grade features
 
 **3. Playwright MCP Engine** (`playwright_mcp_codebase/`)
 - Tool-based automation using Microsoft's Playwright MCP server
@@ -96,8 +104,14 @@ The `EngineOrchestrator` serves as the central coordinator:
 ### Configuration Management
 - Environment variables for secrets (OPENAI_API_KEY, SESSION_SECRET)
 - INI files for non-sensitive settings (config/config.ini)
+- **Enhanced Configuration Sections**:
+  - `[retry]`: Smart retry with exponential backoff settings
+  - `[popup]`: Popup handling timeout and logging configuration
+  - `[performance]`: Performance monitoring settings
+  - `[advanced_features]`: Screenshot, PDF, cookie management toggles
+  - `[data_extraction]`: Data extraction behavior settings
 - Runtime overrides via API parameters (headless mode, browser choice)
-- Design rationale: Separates secrets from configuration, supports flexibility
+- Design rationale: Separates secrets from configuration, supports flexibility and fine-tuning
 
 ### Error Handling Strategy
 - Graceful degradation: Hybrid engine falls back automatically
