@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["openssl", "postgresql", "playwright-driver"]
+packages = ["openssl", "playwright-driver", "postgresql"]
 
 [workflows]
 runButton = "Project"
@@ -27,12 +27,16 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true && gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 35889
+externalPort = 3003
 
 [[ports]]
 localPort = 37899

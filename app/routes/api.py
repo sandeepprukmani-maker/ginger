@@ -53,6 +53,8 @@ def create_api_routes(orchestrator: EngineOrchestrator) -> Blueprint:
             instruction = data.get('instruction', '').strip()
             engine_type = data.get('engine', 'hybrid')
             headless = data.get('headless', False)
+
+            print(instruction,engine_type)
             
             is_valid, error_msg = validate_instruction(instruction)
             if not is_valid:

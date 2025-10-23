@@ -13,8 +13,12 @@ import asyncio
 import configparser
 import logging
 from typing import Dict, Any, List
+from dotenv import load_dotenv
 from browser_use import Agent
 from browser_use.llm import ChatOpenAI
+
+# Load .env file and override any existing environment variables
+load_dotenv(override=True)
 
 logger = logging.getLogger(__name__)
 

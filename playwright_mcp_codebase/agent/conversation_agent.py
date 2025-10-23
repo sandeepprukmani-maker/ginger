@@ -6,7 +6,11 @@ import json
 import os
 import configparser
 from typing import List, Dict, Any
+from dotenv import load_dotenv
 from openai import OpenAI
+
+# Load .env file and override any existing environment variables
+load_dotenv(override=True)
 
 
 class BrowserAgent:

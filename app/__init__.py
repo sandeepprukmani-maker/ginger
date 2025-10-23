@@ -4,10 +4,14 @@ Flask Application Factory
 import os
 import logging
 import sys
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from app.services.engine_orchestrator import EngineOrchestrator
 from app.routes.api import create_api_routes
+
+# Load .env file and override any existing environment variables
+load_dotenv(override=True)
 
 
 def create_app():
