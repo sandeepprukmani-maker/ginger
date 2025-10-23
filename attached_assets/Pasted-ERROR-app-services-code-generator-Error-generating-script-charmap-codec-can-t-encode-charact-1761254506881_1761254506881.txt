@@ -1,0 +1,21 @@
+ERROR    [app.services.code_generator] Error generating script: 'charmap' codec can't encode character '\u2713' in position 1869: character maps to <undefined>
+127.0.0.1 - - [24/Oct/2025 02:50:54] "POST /api/tasks/2/generate-script HTTP/1.1" 500 214 0.002992
+INFO     [application] Task 3 created: go to google.com search for dogs. (headless=False)
+INFO     [app.services.healing_orchestrator] Starting execution of task 3: go to google.com search for dogs.
+INFO     [app.services.browser_use_service] Initializing browser in headless mode
+INFO     [app.services.browser_use_service] Browser-use service initialized successfully
+INFO     [app.services.browser_use_service] Executing instruction: go to google.com search for dogs.
+ERROR    [app.services.browser_use_service] Error executing task with browser-use: 'ChatOpenAI' object has no attribute 'provider'
+WARNING  [app.services.healing_orchestrator] Initial execution failed, attempting healing: 'ChatOpenAI' object has no attribute 'provider'
+INFO     [app.services.healing_orchestrator] Starting healing flow for task 3
+INFO     [app.services.healing_orchestrator] Attempting browser-use healing, retry 1/2
+INFO     [app.services.browser_use_service] Executing instruction: go to google.com search for dogs.
+ERROR    [app.services.browser_use_service] Error executing task with browser-use: 'ChatOpenAI' object has no attribute 'provider'
+INFO     [app.services.healing_orchestrator] Attempting browser-use healing, retry 2/2
+INFO     [app.services.browser_use_service] Executing instruction: go to google.com search for dogs.
+ERROR    [app.services.browser_use_service] Error executing task with browser-use: 'ChatOpenAI' object has no attribute 'provider'
+INFO     [app.services.healing_orchestrator] Browser-use healing failed, attempting MCP healing
+INFO     [app.services.mcp_service] Starting MCP server with command: npx -y @playwright/mcp@latest --headless
+ERROR    [app.services.mcp_service] Error starting MCP server: [WinError 2] The system cannot find the file specified
+ERROR    [app.services.healing_orchestrator] Error in execute_with_healing: Instance <Task at 0x1e2ef11c510> is not bound to a Session; attribute refresh operation cannot proceed (Background on this error at: https://sqlalche.me/e/20/bhk3)
+127.0.0.1 - - [24/Oct/2025 02:51:06] "GET /api/stats HTTP/1.
