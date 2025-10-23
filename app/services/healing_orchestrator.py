@@ -68,7 +68,7 @@ class HealingOrchestrator:
                 healing_result = await self._attempt_healing_flow(
                     task_id=task_id,
                     instruction=instruction,
-                    original_error=result.get('error'),
+                    original_error=result.get('error', 'Unknown error'),
                     emit_callback=emit_callback
                 )
                 
@@ -242,7 +242,7 @@ class HealingOrchestrator:
                 
                 start_time = time.time()
                 
-                success = await self._execute_instruction_with_mcp(instruction)
+                success = await self._execute_instruction_with_mcp(instruction, action_log_id)
                 
                 healing_time = time.time() - start_time
                 
@@ -283,11 +283,14 @@ class HealingOrchestrator:
         finally:
             self.mcp_service.stop_server()
     
-    async def _execute_instruction_with_mcp(self, instruction: str) -> bool:
-        """Execute a simplified instruction using MCP commands"""
+    async def _execute_instruction_with_mcp(self, instruction: str, action_log_id: Optional[int] = None) -> bool:
+        """Execute instruction using MCP commands with selector discovery"""
+        session = None
         try:
             instruction_lower = instruction.lower()
+            session = self.db_manager.get_session() if action_log_id else None
             
+            # Handle navigation
             if 'go to' in instruction_lower or 'navigate' in instruction_lower:
                 url_start = instruction_lower.find('http')
                 if url_start == -1:
@@ -295,16 +298,134 @@ class HealingOrchestrator:
                 
                 if url_start != -1:
                     url = instruction[url_start:].split()[0]
-                    return self.mcp_service.navigate(url)
+                    result = self.mcp_service.navigate(url)
+                    if session and action_log_id and result:
+                        action_log = session.query(ActionLog).filter_by(id=action_log_id).first()
+                        if action_log:
+                            action_log.healed_locator = {'type': 'url', 'value': url}
+                            session.commit()
+                    return result
             
+            # Handle click actions
             elif 'click' in instruction_lower:
-                return True
+                # Extract target description
+                target = instruction_lower.split('click')[-1].strip()
+                if target.startswith('on '):
+                    target = target[3:].strip()
+                
+                # Get element locator
+                selector = self.mcp_service.get_element_locator(target)
+                if selector:
+                    logger.info(f"MCP discovered selector for click: {selector}")
+                    result = self.mcp_service.click_element(selector)
+                    
+                    # Store healed selector in ActionLog
+                    if session and action_log_id and result:
+                        action_log = session.query(ActionLog).filter_by(id=action_log_id).first()
+                        if action_log:
+                            action_log.healed_locator = {'type': 'css', 'selector': selector}
+                            action_log.original_locator = action_log.locator
+                            session.commit()
+                    
+                    return result
             
-            elif 'fill' in instruction_lower or 'type' in instruction_lower:
-                return True
+            # Handle fill/type actions
+            elif 'fill' in instruction_lower or 'type' in instruction_lower or 'enter' in instruction_lower:
+                # Extract target description and value to fill
+                # IMPORTANT: Use instruction_lower for pattern matching, but extract from original instruction to preserve casing
+                target_desc = ""
+                value_to_fill = ""
+                
+                # Parse instruction to extract field description and value
+                # Common patterns: "fill [field] with [value]", "type [value] in [field]", "enter [value] in [field]"
+                if ' with ' in instruction_lower:
+                    # Pattern: "fill [field] with [value]"
+                    # Find the position in original string
+                    with_pos = instruction_lower.find(' with ')
+                    if with_pos != -1:
+                        field_part = instruction[:with_pos]
+                        value_part = instruction[with_pos + 6:]  # 6 = len(' with ')
+                        
+                        # Extract target description (lowercase for matching)
+                        target_desc = field_part.lower().replace('fill', '').replace('type', '').strip()
+                        # Extract value (preserve original case, remove quotes)
+                        value_to_fill = value_part.strip().strip('"').strip("'")
+                        
+                elif ' in ' in instruction_lower:
+                    # Pattern: "type [value] in [field]" or "enter [value] in [field]"
+                    # Find the position in original string
+                    in_pos = instruction_lower.find(' in ')
+                    if in_pos != -1:
+                        value_part = instruction[:in_pos]
+                        field_part = instruction[in_pos + 4:]  # 4 = len(' in ')
+                        
+                        # Extract target description (lowercase for matching)
+                        target_desc = field_part.strip().lower()
+                        # Extract value: remove only the leading command word using regex
+                        import re
+                        # Remove leading "fill", "type", "enter", etc. (case-insensitive, only at start)
+                        value_cleaned = re.sub(r'^\s*(fill|type|enter)\s+', '', value_part, count=1, flags=re.IGNORECASE)
+                        value_to_fill = value_cleaned.strip().strip('"').strip("'")
+                        
+                else:
+                    # Fallback: try to extract from original instruction using regex
+                    target_desc = "input field"
+                    # Try to extract quoted value from original instruction
+                    import re
+                    quoted = re.findall(r'"([^"]+)"|\'([^\']+)\'', instruction)
+                    if quoted:
+                        value_to_fill = quoted[0][0] or quoted[0][1]
+                
+                if not target_desc:
+                    target_desc = "input field"
+                
+                # Get element locator
+                selector = self.mcp_service.get_element_locator(target_desc)
+                if selector:
+                    logger.info(f"MCP discovered selector for fill: {selector}, value: {value_to_fill}")
+                    
+                    # Actually perform the fill action
+                    if value_to_fill:
+                        result = self.mcp_service.fill_input(selector, value_to_fill)
+                    else:
+                        # No value extracted, just verify element exists
+                        logger.warning(f"No value extracted from instruction: {instruction}")
+                        result = False
+                    
+                    # Store healed selector in ActionLog only if fill succeeded
+                    if session and action_log_id and result:
+                        action_log = session.query(ActionLog).filter_by(id=action_log_id).first()
+                        if action_log:
+                            action_log.healed_locator = {'type': 'css', 'selector': selector, 'value': value_to_fill}
+                            action_log.original_locator = action_log.locator
+                            session.commit()
+                    
+                    return result
+                else:
+                    logger.warning(f"Could not find selector for: {target_desc}")
+                    return False
+            
+            # Handle search actions
+            elif 'search' in instruction_lower:
+                target_desc = "search input or search field"
+                selector = self.mcp_service.get_element_locator(target_desc)
+                if selector:
+                    logger.info(f"MCP discovered selector for search: {selector}")
+                    
+                    if session and action_log_id:
+                        action_log = session.query(ActionLog).filter_by(id=action_log_id).first()
+                        if action_log:
+                            action_log.healed_locator = {'type': 'css', 'selector': selector}
+                            action_log.original_locator = action_log.locator
+                            session.commit()
+                    
+                    return True
             
             return False
             
         except Exception as e:
             logger.error(f"Error executing instruction with MCP: {e}")
             return False
+        finally:
+            if session:
+                self.db_manager.close_session()

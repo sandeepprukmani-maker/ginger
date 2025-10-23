@@ -103,7 +103,7 @@ class PlaywrightCodeGenerator:
             '            print(f"Warning: Could not initialize healing services: {e}")',
             '            self.healing_enabled = False',
             '    ',
-            '    async def heal_step(self, step_num: int, action: str, selector: str, error: str) -> Optional[str]:',
+            '    async def heal_step(self, step_num: int, action: str, selector: str, error: str, value: str = "") -> Optional[str]:',
             '        """Attempt to heal a failed step and return new selector"""',
             '        if not self.healing_enabled:',
             '            return None',
@@ -126,10 +126,18 @@ class PlaywrightCodeGenerator:
             '                result = await self.browser_use.execute_task(instruction)',
             '                ',
             '                if result.get("success"):',
-            '                    print(f"  ✓ Healed via browser-use")',
-            '                    # The action was performed, update script and return success',
-            '                    self.update_script(step_num, selector, selector, "browser-use")',
-            '                    return selector',
+            '                    print(f"  ✓ Healed via browser-use, re-executing action on page")',
+            '                    # The action was performed by browser-use, now perform it on our page too',
+            '                    try:',
+            '                        if action == "click":',
+            '                            await self.page.click(selector)',
+            '                        elif action == "fill":',
+            '                            await self.page.fill(selector, value)',
+            '                        print(f"  ✓ Action re-executed successfully on page")',
+            '                        self.update_script(step_num, selector, selector, "browser-use")',
+            '                        return selector',
+            '                    except Exception as page_error:',
+            '                        print(f"  ✗ Failed to re-execute on page: {page_error}")',
             '                    ',
             '            except Exception as e:',
             '                print(f"  ✗ Browser-use attempt {retry + 1} failed: {e}")',
@@ -143,25 +151,39 @@ class PlaywrightCodeGenerator:
             '                current_url = self.page.url',
             '                if self.mcp_service.navigate(current_url):',
             '                    # Try to find a better selector',
-            '                    new_selector = self.mcp_service.get_element_locator(',
-            '                        f"element for {action}", ',
-            '                        None',
-            '                    )',
+            '                    description = f"element for {action} action"',
+            '                    if action == "fill" and value:',
+            '                        description = f"input field for entering {value}"',
             '                    ',
-            '                    if new_selector:',
+            '                    new_selector = self.mcp_service.get_element_locator(description, None)',
+            '                    ',
+            '                    if new_selector and new_selector != selector:',
             '                        print(f"  → MCP found new selector: {new_selector}")',
-            '                        if action == "click" and self.mcp_service.click_element(new_selector):',
-            '                            print(f"  ✓ Healed via MCP with new selector")',
+            '                        # Try the new selector on our page',
+            '                        try:',
+            '                            if action == "click":',
+            '                                await self.page.click(new_selector)',
+            '                            elif action == "fill":',
+            '                                await self.page.fill(new_selector, value)',
+            '                            print(f"  ✓ Healed via MCP with new selector and action re-executed")',
             '                            self.update_script(step_num, selector, new_selector, "mcp")',
             '                            self.mcp_service.stop_server()',
             '                            return new_selector',
+            '                        except Exception as page_error:',
+            '                            print(f"  ✗ New selector failed on page: {page_error}")',
             '                    ',
-            '                    # Fallback: try original selector',
-            '                    if action == "click" and self.mcp_service.click_element(selector):',
-            '                        print(f"  ✓ Healed via MCP")',
+            '                    # Fallback: try original selector with retry',
+            '                    try:',
+            '                        if action == "click":',
+            '                            await self.page.click(selector)',
+            '                        elif action == "fill":',
+            '                            await self.page.fill(selector, value)',
+            '                        print(f"  ✓ Healed via MCP retry with original selector")',
             '                        self.update_script(step_num, selector, selector, "mcp")',
             '                        self.mcp_service.stop_server()',
             '                        return selector',
+            '                    except Exception as page_error:',
+            '                        print(f"  ✗ Original selector retry failed: {page_error}")',
             '                        ',
             '                self.mcp_service.stop_server()',
             '        except Exception as e:',
@@ -296,13 +318,20 @@ class PlaywrightCodeGenerator:
             timeout = log.execution_time * 1000 if log.execution_time else 5000
             lines.append(f'            await self.page.wait_for_timeout({int(timeout)})')
         
-        # Add healing logic
+        # Add healing logic with value parameter for fill/select actions
         lines.append(f'            total_steps += 1')
         lines.append(f'        except Exception as e:')
         lines.append(f'            print(f"✗ Step {step_num} failed: {{e}}")')
         lines.append(f'            ')
         lines.append(f'            # Attempt healing')
-        lines.append(f'            healed_selector = await self.heal_step({step_num}, "{action_type}", "{selector}", str(e))')
+        
+        # Extract value for fill/select actions to pass to heal_step
+        if action_type in ['fill', 'select']:
+            value_str = locator.get('value', '') if isinstance(locator, dict) else ''
+            lines.append(f'            healed_selector = await self.heal_step({step_num}, "{action_type}", "{selector}", str(e), "{value_str}")')
+        else:
+            lines.append(f'            healed_selector = await self.heal_step({step_num}, "{action_type}", "{selector}", str(e))')
+        
         lines.append(f'            ')
         lines.append(f'            if healed_selector:')
         lines.append(f'                print(f"✓ Step {step_num} healed successfully, continuing...")')
