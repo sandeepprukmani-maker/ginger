@@ -20,7 +20,7 @@ class BrowserAgent:
             mcp_client: MCP client for browser automation
         """
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read('config/config.ini')
         
         self.mcp_client = mcp_client
         

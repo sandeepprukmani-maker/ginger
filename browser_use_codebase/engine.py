@@ -38,7 +38,7 @@ class BrowserUseEngine:
         self.headless = headless
         
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read('config/config.ini')
         
         api_key = os.environ.get('OPENAI_API_KEY')
         if not api_key:

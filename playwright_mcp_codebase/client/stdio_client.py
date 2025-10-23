@@ -24,7 +24,7 @@ class MCPStdioClient:
             browser: Browser to use (overrides config.ini if provided)
         """
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read('config/config.ini')
         
         if headless is None:
             headless = config.getboolean('browser', 'headless')
@@ -40,7 +40,7 @@ class MCPStdioClient:
         self.reader_thread = None
         self.stderr_thread = None
         
-        args = ["node", "cli.js"]
+        args = ["node", "node/cli.js"]
         if headless:
             args.append("--headless")
         args.append(f"--browser={browser}")
