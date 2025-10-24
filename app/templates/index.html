@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>🤖 AI Browser Automation</h1>
-            <p class="subtitle">Hybrid Engine: Intelligent Browser-Use + Playwright MCP Fallback</p>
+            <p class="subtitle">AI-Powered Browser Automation with Multiple Engines</p>
         </header>
 
         <div class="main-content">
@@ -23,11 +23,10 @@
                     <div class="config-group">
                         <label for="engine-select">Automation Engine</label>
                         <select id="engine-select" class="config-select">
-                            <option value="hybrid" selected>Hybrid (Intelligent - Recommended)</option>
-                            <option value="browser_use">Browser-Use (AI-Powered)</option>
+                            <option value="browser_use" selected>Browser-Use (AI-Powered - Recommended)</option>
                             <option value="playwright_mcp">Playwright MCP (Tool-Based)</option>
                         </select>
-                        <p class="config-help">Hybrid uses Browser-Use with Playwright MCP fallback for best reliability</p>
+                        <p class="config-help">Browser-Use uses AI for intelligent automation, Playwright MCP uses discrete tool calls</p>
                     </div>
 
                     <div class="config-group">
@@ -95,7 +94,7 @@
             <div class="footer-content">
                 <p>Powered by OpenAI GPT-4o-mini, Playwright, and browser-use</p>
                 <div class="footer-links">
-                    <span class="engine-info">Current: <strong id="current-engine">Hybrid</strong></span>
+                    <span class="engine-info">Current: <strong id="current-engine">Browser-Use</strong></span>
                     <span class="mode-info">Mode: <strong id="current-mode">Headful</strong></span>
                 </div>
             </div>

@@ -151,7 +151,7 @@ def validate_engine_type(engine_type: str) -> Tuple[bool, Optional[str]]:
     Returns:
         Tuple of (is_valid, error_message)
     """
-    valid_engines = ['hybrid', 'browser_use', 'playwright_mcp']
+    valid_engines = ['browser_use', 'playwright_mcp']
     
     if engine_type not in valid_engines:
         return False, f"Invalid engine type '{engine_type}'. Must be one of: {', '.join(valid_engines)}"

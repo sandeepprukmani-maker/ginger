@@ -4,9 +4,8 @@ Manages and coordinates all browser automation engines
 """
 from typing import Dict, Any, Tuple, Optional
 import logging
-import playwright_mcp_codebase
-import browser_use_codebase
-import hybrid_engine
+import app.engines.playwright_mcp as playwright_mcp_codebase
+import app.engines.browser_use as browser_use_codebase
 from app.middleware.security import sanitize_error_message
 
 logger = logging.getLogger(__name__)
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class EngineOrchestrator:
     """
-    Orchestrates browser automation engines (Hybrid, Playwright MCP, and Browser-Use)
+    Orchestrates browser automation engines (Playwright MCP and Browser-Use)
     Handles engine instantiation, caching, and execution delegation
     """
     
@@ -22,7 +21,6 @@ class EngineOrchestrator:
         """Initialize the orchestrator with empty engine caches"""
         self.playwright_engines = {}
         self.browser_use_engines = {}
-        self.hybrid_engines = {}
     
     def get_playwright_engine(self, headless: bool) -> Tuple[Any, Any]:
         """
@@ -56,34 +54,19 @@ class EngineOrchestrator:
         
         return self.browser_use_engines[headless]
     
-    def get_hybrid_engine(self, headless: bool):
-        """
-        Get or create Hybrid engine instance
-        
-        Args:
-            headless: Run in headless mode
-            
-        Returns:
-            HybridEngine instance
-        """
-        if headless not in self.hybrid_engines:
-            self.hybrid_engines[headless] = hybrid_engine.create_engine(headless=headless)
-        
-        return self.hybrid_engines[headless]
-    
     def execute_instruction(self, instruction: str, engine_type: str, headless: bool) -> Dict[str, Any]:
         """
         Execute an instruction using the specified engine
         
         Args:
             instruction: Natural language instruction
-            engine_type: 'hybrid', 'playwright_mcp', or 'browser_use'
+            engine_type: 'playwright_mcp' or 'browser_use'
             headless: Run in headless mode
             
         Returns:
             Execution result dictionary
         """
-        valid_engines = ['hybrid', 'playwright_mcp', 'browser_use']
+        valid_engines = ['playwright_mcp', 'browser_use']
         if engine_type not in valid_engines:
             logger.error(f"Invalid engine type: {engine_type}")
             return {
@@ -97,11 +80,7 @@ class EngineOrchestrator:
         
         result = None
         try:
-            if engine_type == 'hybrid':
-                engine = self.get_hybrid_engine(headless)
-                result = engine.execute_instruction_sync(instruction)
-                
-            elif engine_type == 'playwright_mcp':
+            if engine_type == 'playwright_mcp':
                 client, agent = self.get_playwright_engine(headless)
                 
                 try:
@@ -162,7 +141,7 @@ class EngineOrchestrator:
         Get available tools for the specified engine
         
         Args:
-            engine_type: 'hybrid', 'playwright_mcp', or 'browser_use'
+            engine_type: 'playwright_mcp' or 'browser_use'
             
         Returns:
             List of available tools
@@ -174,10 +153,6 @@ class EngineOrchestrator:
                 client.initialize()
             
             return client.list_tools()
-        elif engine_type == 'hybrid':
-            return [
-                {'name': 'hybrid_agent', 'description': 'Intelligent hybrid automation (Browser-Use + Playwright MCP fallback)'}
-            ]
         else:
             return [
                 {'name': 'browser_use_agent', 'description': 'AI-powered browser automation'}
@@ -194,11 +169,8 @@ class EngineOrchestrator:
         logger.warning(f"Cleaning up after timeout for {engine_type} (headless={headless})")
         
         try:
-            if engine_type == 'playwright_mcp' or engine_type == 'hybrid':
+            if engine_type == 'playwright_mcp':
                 self._reset_playwright_engine(headless)
-            
-            if engine_type == 'hybrid' and headless in self.hybrid_engines:
-                del self.hybrid_engines[headless]
         except Exception as e:
             logger.error(f"Error during timeout cleanup: {str(e)}")
     
@@ -207,12 +179,9 @@ class EngineOrchestrator:
         Reset the conversation history for the specified engine
         
         Args:
-            engine_type: 'hybrid', 'playwright_mcp', or 'browser_use'
-            headless: Headless mode (for Playwright MCP and Hybrid)
+            engine_type: 'playwright_mcp' or 'browser_use'
+            headless: Headless mode (for Playwright MCP)
         """
-        if engine_type == 'hybrid':
-            engine = self.get_hybrid_engine(headless)
-            engine.reset()
-        elif engine_type == 'playwright_mcp':
+        if engine_type == 'playwright_mcp':
             _, agent = self.get_playwright_engine(headless)
             agent.reset_conversation()

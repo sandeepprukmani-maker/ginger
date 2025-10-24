@@ -2,161 +2,211 @@
 
 ## Overview
 
-AI Browser Automation is a Flask-based web application that provides intelligent browser automation through natural language instructions. The system implements a hybrid approach that combines AI-powered autonomous automation with reliable tool-based control, offering automatic fallback mechanisms for maximum reliability.
+AI-powered browser automation platform providing two distinct automation engines: **Browser-Use** (AI-driven reasoning) and **Playwright MCP** (tool-based execution). The system allows users to describe automation tasks in natural language, which are executed by intelligent agents controlling web browsers.
 
-The application exposes a RESTful API and web interface that allows users to execute browser automation tasks using three distinct engines:
-- **Hybrid Engine** (recommended): Attempts AI-powered Browser-Use first, automatically falls back to Playwright MCP if needed
-- **Browser-Use Engine**: Fully autonomous AI agent using LLM reasoning for complex workflows
-- **Playwright MCP Engine**: Deterministic tool-based automation using Microsoft's Model Context Protocol
+Built as a Flask web service with a modern web interface, supporting both headless and headful browser modes. Designed to handle complex multi-step workflows, data extraction, screenshot capture, and other advanced browser automation tasks.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
+## Project Structure
+
+```
+ai-browser-automation/
+├── app/                          # Flask application
+│   ├── engines/                  # Automation engines
+│   │   ├── browser_use/          # Browser-Use AI engine
+│   │   │   ├── engine.py         # Base engine
+│   │   │   ├── engine_optimized.py  # Enhanced with advanced features
+│   │   │   ├── advanced_features.py # Screenshots, PDFs, cookies
+│   │   │   ├── retry_mechanism.py   # Exponential backoff retry
+│   │   │   ├── state_manager.py     # Workflow state persistence
+│   │   │   ├── data_extractor.py    # Table/list extraction
+│   │   │   ├── performance_monitor.py # Metrics tracking
+│   │   │   ├── popup_handler.py     # Popup window handling
+│   │   │   └── playwright_code_generator.py # Code export
+│   │   └── playwright_mcp/       # Playwright MCP tool engine
+│   │       ├── agent/            # Conversation agent
+│   │       ├── client/           # STDIO MCP client
+│   │       └── mcp_code_generator.py # Code export
+│   ├── middleware/               # Security & validation
+│   │   └── security.py           # Auth, rate limiting, validation
+│   ├── routes/                   # API endpoints
+│   │   └── api.py                # REST API routes
+│   ├── services/                 # Business logic
+│   │   └── engine_orchestrator.py # Engine management
+│   ├── static/                   # Frontend assets
+│   │   ├── css/style.css
+│   │   └── js/app.js
+│   ├── templates/                # HTML templates
+│   │   └── index.html
+│   └── utils/                    # Shared utilities
+│       └── timeout.py            # Cross-platform timeout handling
+├── integrations/                 # External integrations
+│   └── playwright_mcp_node/      # Node.js MCP server
+│       ├── cli.js                # Server entry point
+│       └── package.json          # Node dependencies
+├── config/                       # Configuration
+│   └── config.ini                # OpenAI & browser settings
+├── tests/                        # Test suite
+│   ├── unit/                     # Unit tests
+│   ├── integration/              # Integration tests
+│   └── conftest.py               # Pytest configuration
+├── main.py                       # Application entry point
+├── requirements.txt              # Python dependencies
+├── pyproject.toml                # Project metadata
+└── .env                          # Environment variables (secrets)
+```
+
 ## System Architecture
 
-### Application Framework
-- **Web Framework**: Flask with factory pattern (`create_app()`)
-- **Frontend**: Server-side rendered HTML with vanilla JavaScript
-- **API Design**: RESTful endpoints with JSON request/response format
-- **Multi-threading**: Flask's default threaded mode with per-request resource isolation
+### Frontend Architecture
 
-### Core Components
+**Web Interface**: Single-page application (SPA) using vanilla JavaScript with a two-column layout:
+- Left panel: Configuration controls (engine selection, headless mode toggle, instruction input)
+- Right panel: Real-time execution status, results display, and generated code preview
+- Styling: Gradient purple theme with responsive design using CSS Grid
 
-#### Engine Orchestration Layer
-The `EngineOrchestrator` serves as the central coordinator:
-- Manages three distinct automation engines (Hybrid, Browser-Use, Playwright MCP)
-- Implements per-headless-mode caching for engine instances
-- Delegates execution based on engine selection
-- Rationale: Centralized management ensures consistent engine lifecycle and prevents resource leaks
+**Client-Side Features**:
+- Real-time status updates during automation execution
+- JSON result formatting and display
+- Generated Playwright code preview for reusability
+- Engine and mode selection persistence in UI
 
-#### Automation Engines
+### Backend Architecture
 
-**1. Hybrid Engine** (`hybrid_engine/`)
-- Strategy: Primary-fallback pattern
-- Uses Browser-Use as primary, Playwright MCP as automatic fallback
-- Returns metadata indicating which engine succeeded
-- Design rationale: Combines AI intelligence with tool-based reliability for production use
+**Flask Application Factory Pattern**: Modular structure with blueprints, middleware, and services separation.
 
-**2. Browser-Use Engine** (`browser_use_codebase/`)
-- AI-powered automation using the `browser-use` library
-- Leverages OpenAI LLMs for autonomous reasoning
-- Thread safety: Creates fresh browser instance per request with isolated event loops
-- No instance caching to prevent asyncio loop affinity issues
-- **OPTIMIZED VERSION** (`engine_optimized.py`): Enhanced with advanced features (default)
-  - Screenshot capture and PDF generation
-  - Cookie and session management for authentication persistence
-  - Smart retry mechanism with exponential backoff
-  - Workflow state management with checkpoints
-  - Data extraction (tables, lists, structured data)
-  - Performance monitoring and metrics tracking
-  - Enhanced popup handling with configurable timeouts
-- Design rationale: Maximizes autonomy for complex multi-step workflows with enterprise-grade features
+**Engine Orchestrator** (`app/services/engine_orchestrator.py`): Manages two distinct automation engines with instance caching and lifecycle management.
 
-**3. Playwright MCP Engine** (`playwright_mcp_codebase/`)
-- Tool-based automation using Microsoft's Playwright MCP server
-- Client-server architecture over STDIO transport
-- OpenAI agent converts natural language to discrete tool calls
-- Design rationale: Provides deterministic control for reliability
+**Automation Engines**:
 
-#### Security & Middleware Layer
-- **Authentication**: API key validation via headers
-- **Rate Limiting**: In-memory rate limiter (10 requests/60 seconds per client)
-- **Input Validation**: Instruction sanitization and engine type validation
-- **Error Handling**: Sanitized error messages to prevent information leakage
-- Design rationale: Multi-layer security without external dependencies
+1. **Browser-Use Engine** (AI-Powered - Default & Recommended):
+   - Location: `app/engines/browser_use/`
+   - Uses OpenAI's LLM to reason about browser actions
+   - Implements the `browser-use` library with Playwright backend
+   - Features: Advanced popup handling, retry mechanisms with exponential backoff, state management for complex workflows, performance monitoring, data extraction (tables, lists, metadata), screenshot/PDF generation, cookie management
+   - Thread-safe design: Creates fresh browser instances per request with proper cleanup
+   - Two implementations: `engine.py` (base) and `engine_optimized.py` (enhanced)
 
-#### Timeout Management
-- Cross-platform timeout utility using ThreadPoolExecutor
-- Graceful timeout handling that returns promptly to HTTP clients
-- Note: Background threads may continue but don't block responses
-- Design rationale: Prevents hung requests across Windows/Linux/macOS
+2. **Playwright MCP Engine** (Tool-Based):
+   - Location: `app/engines/playwright_mcp/`
+   - Uses Model Context Protocol (MCP) for discrete tool calls
+   - OpenAI function calling to map natural language to browser tools
+   - Communicates with Node.js MCP server via STDIO transport (subprocess)
+   - Available tools: navigate, click, fill, snapshot, select, hover, evaluate, screenshot
+   - Node server location: `integrations/playwright_mcp_node/`
 
-### Request Flow
+**Code Generation**: Both engines include code generators that convert executed automation steps into reusable Playwright Python code.
 
-1. Client submits instruction via web UI or API endpoint
-2. Security middleware validates API key and applies rate limiting
-3. Request validation checks instruction and engine type
-4. EngineOrchestrator retrieves/creates appropriate engine instance
-5. Engine executes instruction with timeout protection
-6. Results formatted and returned as JSON response
-7. Frontend updates UI with execution results and metadata
+**Execution Flow**:
+1. User submits natural language instruction via REST API (`/api/execute`)
+2. Orchestrator selects appropriate engine based on request parameter
+3. Engine creates fresh browser instance on new event loop (thread safety)
+4. AI agent interprets instruction and executes browser actions
+5. Results, history, and generated code returned to client
+6. Browser instance cleaned up via finally block
 
-### Thread Safety Model
+**Security & Middleware** (`app/middleware/security.py`):
+- API key authentication (optional, configurable via `API_KEY` env var)
+- Rate limiting: In-memory limiter (10 requests per 60 seconds by default)
+- Input validation and sanitization
+- Error message sanitization to prevent information leakage
+- CORS support with configurable allowed origins
 
-**Browser-Use Engine**: 
-- Creates new event loop per request
-- No shared state between requests
-- Browser instances disposed after execution
-- Trade-off: Slower startup but complete isolation
+**Thread Safety Design**: Designed for Flask's multi-threaded WSGI environment. Each request creates its own asyncio event loop and browser instance, avoiding event loop affinity issues. Resources are properly cleaned up after each request.
 
-**Playwright MCP Engine**:
-- Subprocess-based MCP server
-- STDIO communication via JSON-RPC
-- Thread-safe client with request ID tracking
-- Trade-off: Subprocess overhead but predictable lifecycle
+**Timeout Handling** (`app/utils/timeout.py`): Cross-platform timeout mechanism using ThreadPoolExecutor to prevent hung operations (default: 300 seconds).
 
-**Hybrid Engine**:
-- Lazy initialization of both engines
-- Falls back automatically on Browser-Use failure
-- Tracks which engine succeeded for transparency
+### API Endpoints
 
-### Configuration Management
-- Environment variables for secrets (OPENAI_API_KEY, SESSION_SECRET)
-- INI files for non-sensitive settings (config/config.ini)
-- **Enhanced Configuration Sections**:
-  - `[retry]`: Smart retry with exponential backoff settings
-  - `[popup]`: Popup handling timeout and logging configuration
-  - `[performance]`: Performance monitoring settings
-  - `[advanced_features]`: Screenshot, PDF, cookie management toggles
-  - `[data_extraction]`: Data extraction behavior settings
-- Runtime overrides via API parameters (headless mode, browser choice)
-- Design rationale: Separates secrets from configuration, supports flexibility and fine-tuning
+- `GET /` - Web interface
+- `POST /api/execute` - Execute automation instruction
+- `GET /api/tools` - List available tools for an engine
+- `POST /api/reset` - Reset agent conversation history
+- `GET /health` - Health check endpoint
 
-### Error Handling Strategy
-- Graceful degradation: Hybrid engine falls back automatically
-- Timeout protection: All engine executions wrapped in timeout utility
-- Error sanitization: Production errors don't leak internal details
-- Logging: Comprehensive logging at INFO level for debugging
+### Data Storage
+
+**No Database**: The current implementation does not use a persistent database. All state is in-memory or written to local files (screenshots, PDFs, workflow states, cookies).
+
+**File-Based Outputs**:
+- Screenshots: `automation_outputs/screenshots/`
+- PDFs: `automation_outputs/pdfs/`
+- Cookies: `automation_outputs/cookies/`
+- Workflow states: `workflow_states/*.json` (for complex multi-step workflows)
+
+**Environment Configuration**: Uses `python-dotenv` to load configuration from `.env` file with explicit override to prevent system environment variable conflicts.
+
+### Authentication & Authorization
+
+**API Key Authentication**: Optional middleware-based API key validation via `X-API-Key` header. Disabled by default (no auth required), can be enabled by setting `API_KEY` environment variable.
+
+**No User Management**: The system does not implement user accounts, sessions, or role-based access control. It's designed as a single-user or team-shared automation service.
 
 ## External Dependencies
 
-### AI & Language Models
-- **OpenAI API**: LLM for natural language understanding and reasoning
-  - Used by both Browser-Use and Playwright MCP agents
-  - Configured via OPENAI_API_KEY environment variable
-  - Default model: gpt-4o-mini (configurable)
+### Third-Party Services
 
-### Browser Automation Libraries
-- **browser-use** (>=0.5.9): AI-powered autonomous browser automation
-- **Playwright**: Browser automation framework (via @playwright/mcp Node package)
-- **playwright-core**: Core Playwright functionality
+**OpenAI API** (Required):
+- Purpose: LLM reasoning for natural language instruction interpretation
+- Configuration: `OPENAI_API_KEY` environment variable (never hardcoded)
+- Models used: `gpt-4o-mini` (default, configurable in `config/config.ini`)
+- Usage: Both engines use OpenAI for instruction understanding and action planning
 
-### Web Framework & HTTP
-- **Flask** (>=3.1.2): Python web framework
-- **flask-cors** (>=6.0.1): Cross-origin resource sharing
-- **flask-sqlalchemy** (>=3.1.1): Database ORM (prepared for future persistence)
-- **gunicorn** (>=23.0.0): WSGI HTTP server for production
+### Core Python Libraries
 
-### Node.js Integration
-- **@playwright/mcp** (v0.0.43): Playwright Model Context Protocol server
-- **@modelcontextprotocol/sdk**: MCP SDK for tool-based automation
-- Communication: Subprocess with STDIO transport using JSON-RPC
+- **browser-use**: AI-powered browser automation library with LLM reasoning
+- **Playwright**: Cross-browser automation framework (Chromium, Firefox, WebKit)
+- **langchain-openai**: LangChain integration for OpenAI models
+- **Flask**: Web framework for REST API and UI serving
+- **Flask-CORS**: Cross-origin resource sharing support
+- **python-dotenv**: Environment variable management from `.env` files
+- **pytest**, **pytest-cov**: Testing framework and coverage
+- **gunicorn**: Production WSGI server
 
-### Supporting Libraries
-- **langchain-openai** (>=1.0.1): LangChain OpenAI integration
-- **python-dotenv** (>=1.1.1): Environment variable management
-- **psycopg2-binary** (>=2.9.11): PostgreSQL adapter (for future database features)
-- **requests** (>=2.32.5): HTTP library
-- **sseclient-py** (>=1.8.0): Server-sent events client
+### Node.js Components
 
-### Testing
-- **pytest** (>=8.4.2): Testing framework
-- **pytest-cov** (>=7.0.0): Code coverage reporting
+**Playwright MCP Server** (`integrations/playwright_mcp_node/`):
+- Purpose: Provides tool-based browser automation via Model Context Protocol
+- Package: `@playwright/mcp` (custom MCP server implementation)
+- Communication: JSON-RPC over STDIO with Python subprocess
+- Dependencies: `@modelcontextprotocol/sdk`, `playwright`, `playwright-core`
 
-### Security Considerations
-- API keys stored exclusively in environment variables
-- No secrets in configuration files or code
-- Input sanitization on all user-provided data
-- Rate limiting to prevent abuse
-- CORS configured with explicit allowed origins
+### Browser Requirements
+
+**Playwright Browsers**: Automatically downloads Chromium, Firefox, and WebKit on first run. Configurable via `config/config.ini`:
+- Default browser: Chromium
+- Headless mode: Configurable per request
+- Browser validation: Skipped via `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`
+
+### Configuration Files
+
+**config/config.ini**: Central configuration for OpenAI models and browser settings
+**.env**: Sensitive environment variables (API keys, secrets)
+- `OPENAI_API_KEY`: Required for AI features
+- `SESSION_SECRET`: Flask session secret
+- `CORS_ALLOWED_ORIGINS`: Comma-separated allowed origins for CORS
+
+## Testing
+
+**Test Structure** (`tests/`):
+- `unit/`: Unit tests for individual components (security, validation, utilities)
+- `integration/`: Integration tests for API endpoints and engine orchestration
+- `conftest.py`: Pytest configuration and shared fixtures
+
+Run tests: `pytest tests/`
+
+## Recent Changes
+
+**2025-10-24**: Major project restructure
+- Removed hybrid engine implementation (simplified to 2 engines: browser_use, playwright_mcp)
+- Reorganized project structure professionally:
+  - Moved `browser_use_codebase/` → `app/engines/browser_use/`
+  - Moved `playwright_mcp_codebase/` → `app/engines/playwright_mcp/`
+  - Moved `node/` → `integrations/playwright_mcp_node/`
+- Updated all imports to reflect new package structure
+- Deleted unnecessary files (requirements.txt.bak, config.ini duplicate, check_env.py, run_windows.bat, uv.lock)
+- Created professional test suite structure
+- Browser-Use is now the default and recommended engine

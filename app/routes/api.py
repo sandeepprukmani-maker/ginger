@@ -51,7 +51,7 @@ def create_api_routes(orchestrator: EngineOrchestrator) -> Blueprint:
                 }), 400
             
             instruction = data.get('instruction', '').strip()
-            engine_type = data.get('engine', 'hybrid')
+            engine_type = data.get('engine', 'browser_use')
             headless = data.get('headless', False)
 
             print(instruction,engine_type)
@@ -133,7 +133,7 @@ def create_api_routes(orchestrator: EngineOrchestrator) -> Blueprint:
     def get_tools():
         """Get available browser tools"""
         try:
-            engine_type = request.args.get('engine', 'hybrid')
+            engine_type = request.args.get('engine', 'browser_use')
             
             is_valid, error_msg = validate_engine_type(engine_type)
             if not is_valid:
@@ -165,7 +165,7 @@ def create_api_routes(orchestrator: EngineOrchestrator) -> Blueprint:
         """Reset the browser agent"""
         try:
             data = request.get_json() or {}
-            engine_type = data.get('engine', 'hybrid')
+            engine_type = data.get('engine', 'browser_use')
             
             is_valid, error_msg = validate_engine_type(engine_type)
             if not is_valid:
@@ -198,11 +198,10 @@ def create_api_routes(orchestrator: EngineOrchestrator) -> Blueprint:
             return jsonify({
                 'status': 'healthy',
                 'engines': {
-                    'hybrid': 'available',
                     'browser_use': 'available',
                     'playwright_mcp': 'available'
                 },
-                'message': 'Hybrid-engine browser automation ready',
+                'message': 'AI browser automation ready',
                 'security': {
                     'authentication': 'enabled' if os.environ.get('API_KEY') else 'disabled',
                     'rate_limiting': 'enabled'

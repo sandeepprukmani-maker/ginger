@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["openssl", "playwright-driver", "postgresql"]
+packages = ["gitFull", "openssl", "playwright-driver", "postgresql"]
 
 [workflows]
 runButton = "Project"
@@ -49,6 +49,10 @@ externalPort = 5000
 [[ports]]
 localPort = 37899
 externalPort = 3000
+
+[[ports]]
+localPort = 41419
+externalPort = 5173
 
 [[ports]]
 localPort = 43723
