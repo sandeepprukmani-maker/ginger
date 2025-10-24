@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-browser-automation-platform"
+version = "1.0.0"
+description = "AI-powered browser automation platform with multi-engine orchestration and intelligent task learning"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "AI Browser Automation Team"}
+]
+keywords = ["automation", "browser", "ai", "playwright", "testing", "web-scraping"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "browser-use>=0.5.9",
+    "email-validator>=2.3.0",
+    "eventlet>=0.40.3",
+    "faiss-cpu>=1.12.0",
+    "flask>=3.1.2",
+    "flask-cors>=6.0.1",
+    "Flask-SocketIO>=5.5.1",
+    "flask-sqlalchemy>=3.1.1",
+    "gevent>=25.9.1",
+    "google-generativeai>=0.8.5",
+    "gunicorn>=23.0.0",
+    "langchain-openai>=1.0.1",
+    "nest-asyncio",
+    "numpy>=2.3.3",
+    "openai>=2.6.0",
+    "pillow>=11.3.0",
+    "playwright>=1.55.0",
+    "psycopg2-binary>=2.9.11",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "python-dotenv>=1.1.1",
+    "python-socketio>=5.14.1",
+    "requests>=2.32.5",
+    "scikit-learn>=1.7.2",
+    "sseclient-py>=1.8.0",
+    "websocket-client>=1.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+]
+
+engines = [
+    "browser-use>=0.5.9",
+    "langchain-openai>=1.0.1",
+    "openai>=2.6.0",
+    "playwright>=1.55.0",
+]
+
+visionvault = [
+    "Flask-SocketIO>=5.5.1",
+    "google-generativeai>=0.8.5",
+    "faiss-cpu>=1.12.0",
+    "scikit-learn>=1.7.2",
+    "pillow>=11.3.0",
+]
+
+[project.scripts]
+run-engines-api = "src.apps.engines_api.__main__:main"
+run-visionvault-ui = "src.apps.visionvault_ui.__main__:main"
+start-all = "bin.start-all:main"
+
+[tool.setuptools]
+packages = ["src", "src.apps", "src.apps.engines_api", "src.apps.visionvault_ui", "src.core"]
+
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.css", "*.js", "*.json", "*.ini", "*.conf"]
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.git
+  | \.venv
+  | build
+  | dist
+  | node_modules
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=src --cov-report=html --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
