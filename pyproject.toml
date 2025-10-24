@@ -42,8 +42,9 @@ dependencies = [
     "pyotp>=2.9.0",
     "pillow>=11.2.1",
     "markdownify>=1.2.0",
-
-
+    "streamlit>=1.50.0",
+    "nest-asyncio>=1.6.0",
+    "playwright>=1.55.0",
 ]
 # google-api-core: only used for Google LLM APIs
 # pyperclip: only used for examples that use copy/paste
