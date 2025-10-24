@@ -46,8 +46,26 @@ def create_app():
     logger.info("🚀 Starting AI Browser Automation application")
     
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.environ.get("SESSION_SECRET")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    
+    # Session secret key - MUST be set in production
+    session_secret = os.environ.get("SESSION_SECRET")
+    if not session_secret:
+        # Generate ephemeral random key for local development only
+        import secrets
+        session_secret = secrets.token_hex(32)
+        logger.warning("⚠️  SESSION_SECRET not set! Using ephemeral random key for local dev.")
+        logger.warning("⚠️  Set SESSION_SECRET environment variable for production!")
+    
+    app.config['SECRET_KEY'] = session_secret
+    
+    # Support both Replit (DATABASE_URL) and local development (SQLite fallback)
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        # Use SQLite for local development
+        database_url = "sqlite:///automation_history.db"
+        logger.info("📝 Using SQLite database for local development")
+    
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,

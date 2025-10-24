@@ -29,7 +29,8 @@ def test_browser_use_selector_validation():
         'params': {'selector': '[data-testid="email-input"]', 'value': 'test@example.com'}
     })
     
-    generator.actions = [brittle_action, stable_action]
+    # Filter out None values before assignment
+    generator.actions = [a for a in [brittle_action, stable_action] if a is not None]
     
     # Generate code
     code = generator.generate_python_code()

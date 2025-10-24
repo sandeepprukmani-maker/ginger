@@ -240,8 +240,7 @@ class MCPCodeGenerator:
                     confidence, confidence_reason = SelectorValidator.validate_selector(selector)
                     if confidence == SelectorConfidence.REJECTED:
                         comment = f"Click element - REJECTED selector '{selector}' not used: {confidence_reason}"
-                        placeholder_ref = ref if ref else "REPLACE_ME"
-                        locator_code = f'page.locator("[data-testid=\\"{placeholder_ref}\\"]")'
+                        locator_code = None  # Don't generate executable code for rejected selectors
                         confidence_reason = f"REJECTED selector blocked: {confidence_reason}"
                     else:
                         comment = f"Click element: {selector}"
@@ -295,8 +294,7 @@ class MCPCodeGenerator:
                     confidence, confidence_reason = SelectorValidator.validate_selector(selector)
                     if confidence == SelectorConfidence.REJECTED:
                         comment = f"Fill '{value}' - REJECTED selector '{selector}' not used: {confidence_reason}"
-                        placeholder_ref = ref if ref else "REPLACE_ME"
-                        locator_code = f'page.locator("[data-testid=\\"{placeholder_ref}\\"]")'
+                        locator_code = None  # Don't generate executable code for rejected selectors
                         confidence_reason = f"REJECTED selector blocked: {confidence_reason}"
                     else:
                         comment = f"Fill '{value}' into element: {selector}"
