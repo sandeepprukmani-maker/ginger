@@ -1,10 +1,10 @@
-modules = ["python-3.11", "nodejs-20", "web"]
+modules = ["web", "nodejs-20", "python-3.11"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["openssl", "playwright-driver", "postgresql"]
+packages = ["freetype", "gitFull", "glibcLocales", "iana-etc", "lcms2", "libev", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "playwright-driver", "tcl", "tk", "zlib", "alsa-lib", "atk", "cairo", "cups", "dbus", "expat", "glib", "gtk3", "libdrm", "libxkbcommon", "mesa", "nspr", "nss"]
 
 [workflows]
 runButton = "Project"
@@ -16,10 +16,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Server"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -27,37 +27,13 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+args = "python start_server.py"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 34203
-externalPort = 4200
-
-[[ports]]
-localPort = 35889
-externalPort = 3003
-
-[[ports]]
-localPort = 37223
-externalPort = 5000
-
-[[ports]]
-localPort = 37899
-externalPort = 3000
-
-[[ports]]
-localPort = 43723
-externalPort = 3002
-
-[[ports]]
-localPort = 43817
-externalPort = 3001
-
 [deployment]
-deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+deploymentTarget = "vm"
+run = ["bash", "-c", "cd engines && gunicorn --bind=0.0.0.0:5000 --reuse-port --workers=2 --worker-class=sync --timeout=120 'app:create_app()'"]
