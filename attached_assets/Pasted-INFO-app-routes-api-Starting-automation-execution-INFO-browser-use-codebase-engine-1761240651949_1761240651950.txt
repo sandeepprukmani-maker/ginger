@@ -1,0 +1,18 @@
+INFO     [app.routes.api] 🚀 Starting automation execution...
+INFO     [browser_use_codebase.engine] 🤖 Initializing Browser-Use Agent
+INFO     [browser_use_codebase.engine] 📋 Task: open google.com search for dogs.
+INFO     [browser_use_codebase.engine] 🔢 Max steps: 100
+INFO     [browser_use_codebase.engine] ⚙️  Configuring agent with literal execution instructions
+INFO     [browser_use.agent.service] 💾 File system path: C:\Users\Sandeep\AppData\Local\Temp\browser_use_agent_068fa65e-abaf-759a-8000-df841e878d3d_1761240554
+INFO     [browser_use.agent.service] 📸 Screenshot service initialized in: C:\Users\Sandeep\AppData\Local\Temp\browser_use_agent_068fa65e-abaf-759a-8000-df841e878d3d_1761240554/screenshots
+INFO     [browser_use.Agent🅰 8d3d on 🆂 8d3d 🅟 72] 🧠 Starting a browser-use agent 0.5.9 with base_model=gpt-4o-mini +vision extraction_model=gpt-4o-mini +file_system
+INFO     [browser_use_codebase.engine] ▶️  Starting agent execution...
+INFO     [browser_use.Agent🅰 8d3d on 🆂 8d3d 🅟 72] 🚀 Starting task: open google.com search for dogs.
+INFO     [browser_use.BrowserSession🆂 8d3d:None #48] 🎭 Launching new local browser playwright:chromium keep_alive=False user_data_dir= ~\.config\browseruse\profiles\default
+INFO     [browser_use.utils] ✅ Extensions ready: 3 extensions loaded (uBlock Origin, I still don't care about cookies, ClearURLs)
+INFO     [browser_use.BrowserSession🆂 8d3d:None #48]  ↳ Spawning Chrome subprocess listening on CDP http://127.0.0.1:55768/ with user_data_dir= ~\.config\browseruse\profiles\default
+INFO     [browser_use.BrowserSession🆂 8d3d:55768 #48] 🌎 Connecting to newly spawned browser via CDP http://127.0.0.1:55768/ -> browser_pid=9152 (local)
+INFO     [browser_use.Agent🅰 8d3d on 🆂 8d3d 🅟 76] 📍 Step 1: Evaluating page with 0 interactive elements on: about:blank
+ERROR    [browser_use.Agent🅰 8d3d on 🆂 8d3d 🅟 76] ❌ Result failed 1/3 times:
+ LLM call timed out after 60 seconds. Keep your thinking and output short.
+INFO     [browser_use.Agent🅰 8d3d on 🆂 8d3d 🅟 76] 📍 Step 1: Ran 1 actions in 63.07s: ❌ 1
