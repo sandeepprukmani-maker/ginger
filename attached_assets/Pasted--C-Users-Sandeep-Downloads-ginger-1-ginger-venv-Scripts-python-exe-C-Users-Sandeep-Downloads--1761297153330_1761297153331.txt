@@ -1,0 +1,189 @@
+"C:\Users\Sandeep\Downloads\ginger (1)\ginger\.venv\Scripts\python.exe" "C:\Users\Sandeep\Downloads\ginger (1)\ginger\main.py" 
+INFO     [app] 🚀 Starting AI Browser Automation application
+INFO     [app] 🔒 CORS configured with origins: ['*']
+INFO     [app] 📦 Initializing Engine Orchestrator
+INFO     [app] 🔗 Registering API routes
+INFO     [app] ✅ Application initialization complete
+================================================================================
+🚀 AI BROWSER AUTOMATION - STARTING UP
+================================================================================
+✅ API Key found: sk-proj-OILAKqrnEsW5...YxMA
+
+🌐 Starting Flask web server on port 5000...
+================================================================================
+
+💡 TIP: Keep this console window open to see automation logs
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO     [werkzeug] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.150:5000
+INFO     [werkzeug] Press CTRL+C to quit
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 14:31:42] "GET / HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 14:31:42] "GET /static/css/style.css HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 14:31:42] "GET /static/js/app.js HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 14:31:42] "GET /health HTTP/1.1" 200 -
+WARNING  [app.middleware.security] ⚠️  API_KEY not set - authentication disabled (development mode)
+open linkedin.com click join now then click continue with google it will open a new browser switch to that and fill sandeep.smr in email field and click next. browser_use
+INFO     [app.routes.api] ================================================================================
+INFO     [app.routes.api] 📨 NEW AUTOMATION REQUEST
+INFO     [app.routes.api] 📝 Instruction: open linkedin.com click join now then click continue with google it will open a new browser switch to that and fill sandeep.smr in email field and click next.
+INFO     [app.routes.api] 🔧 Engine: browser_use
+INFO     [app.routes.api] 👁️  Headless: False
+INFO     [app.routes.api] 🌐 Client: 127.0.0.1
+INFO     [app.routes.api] ================================================================================
+INFO     [app.routes.api] 🚀 Starting automation execution...
+INFO     [app.engines.browser_use.advanced_features] 📁 Advanced features initialized with output dir: automation_outputs
+INFO     [app.engines.browser_use.performance_monitor] 📊 Performance monitor initialized
+INFO     [app.engines.browser_use.data_extractor] 📊 Data extractor initialized
+INFO     [app.engines.browser_use.engine_optimized] 🚀 Advanced features enabled: Screenshots, PDFs, Cookies, Retry, Performance Tracking
+INFO     [app.engines.browser_use.engine_optimized] 🤖 Initializing Browser-Use Agent
+INFO     [app.engines.browser_use.engine_optimized] 📋 Task: open linkedin.com click join now then click continue with google it will open a new browser switch to that and fill sandeep.smr in email field and click next.
+INFO     [app.engines.browser_use.engine_optimized] 🔢 Max steps: 25
+INFO     [app.engines.browser_use.engine_optimized] ⚙️  Configuring agent with optimizations
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/telemetry.
+INFO     [app.engines.browser_use.engine_optimized] ▶️  Starting agent execution...
+INFO     [Agent] 🎯 Task: open linkedin.com click join now then click continue with google it will open a new browser switch to that and fill sandeep.smr in email field and click next.
+INFO     [Agent] Starting a browser-use agent with version 0.9.0, with provider=openai and model=gpt-4o-mini
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   ❔ Eval: No actions have been taken yet as the page is empty. Verdict: Uncertain.
+INFO     [Agent]   🧠 Memory: The task is to open LinkedIn, click 'Join now', and then proceed with Google sign-in using the email 'sandeep.smr'. Currently, the browser state shows an empty page.
+INFO     [Agent]   🎯 Next goal: Navigate to linkedin.com to begin the process.
+INFO     [Agent]   ▶️   navigate: url: https://www.linkedin.com, new_tab: False
+INFO     [tools] 🔗 Navigated to https://www.linkedin.com
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   👍 Eval: Successfully navigated to LinkedIn's homepage. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's homepage, ready to click the 'Join now' button.
+INFO     [Agent]   🎯 Next goal: Click the 'Join now' button to start the sign-up process.
+INFO     [Agent]   ▶️   click: index: 436
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   👍 Eval: Successfully clicked 'Join now', but the page is not fully loaded. Verdict: Uncertain.
+INFO     [Agent]   🧠 Memory: Navigated to LinkedIn and clicked on 'Join now', but the sign-up page is currently empty with no interactive elements.
+INFO     [Agent]   🎯 Next goal: Wait for the page to load completely so that I can proceed with the Google sign-in.
+INFO     [Agent]   ▶️   wait: seconds: 5
+INFO     [tools] 🕒 waited for 5 seconds
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   👍 Eval: Successfully waited for the page to load and now have access to interactive elements. Verdict: Success
+INFO     [Agent]   🧠 Memory: Navigated to LinkedIn, clicked 'Join now', and waited for the sign-up page to load. The page is now ready for further actions.
+INFO     [Agent]   🎯 Next goal: Click the 'Continue with Google' button to proceed with Google sign-in.
+INFO     [Agent]   ▶️   click: index: 3600
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 5:
+INFO     [Agent]   👍 Eval: Successfully clicked 'Continue with Google', which opened the Google sign-in page. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after clicking 'Continue with Google'. Ready to input the email address.
+INFO     [Agent]   🎯 Next goal: Fill in the email field with 'sandeep.smr' and click 'Next'.
+INFO     [Agent]   ▶️  [1/2] input: index: 3553, text: sandeep.smr, clear: True
+INFO     [BrowserSession] ⌨️ Typed "sandeep.smr" into element with index 3553
+INFO     [Agent]   ▶️  [2/2] click: index: 3585
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 6:
+INFO     [Agent]   👍 Eval: Successfully filled in the email field and clicked 'Next'. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page. The email field has been filled with 'sandeep.smr', and the next step is to click 'Next'.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to proceed with the Google sign-in.
+INFO     [Agent]   ▶️   click: index: 3560
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 7:
+INFO     [Agent]   👍 Eval: Successfully clicked 'Next' after filling in the email field. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after filling in the email address 'sandeep.smr'. The next step is to click 'Next' to continue with the sign-in process.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to proceed with the Google sign-in.
+INFO     [Agent]   ▶️   click: index: 3559
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 8:
+INFO     [Agent]   👍 Eval: Successfully clicked 'Next' after filling in the email field. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after filling in the email address 'sandeep.smr'. The next step is to fill in the password and continue.
+INFO     [Agent]   🎯 Next goal: Fill in the password field and click 'Next' to complete the Google sign-in process.
+INFO     [Agent]   ▶️  [1/2] input: index: 3559, text: <password_here>, clear: True
+INFO     [BrowserSession] ⌨️ Typed "<password_here>" into element with index 3559
+INFO     [Agent]   ▶️  [2/2] click: index: 3560
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 9:
+INFO     [Agent]   👍 Eval: Successfully filled in the password field and clicked 'Next'. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after filling in the email address 'sandeep.smr'. The password field has been filled, and I am ready to proceed with signing in.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to complete the Google sign-in process.
+INFO     [Agent]   ▶️  [1/2] input: index: 3559, text: <password_here>, clear: True
+INFO     [BrowserSession] ⌨️ Typed "<password_here>" into element with index 3559
+INFO     [Agent]   ▶️  [2/2] click: index: 3559
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 10:
+INFO     [Agent]   👍 Eval: Successfully filled in the password field and clicked 'Next'. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after filling in the email address 'sandeep.smr'. The password field has been filled, and I am ready to proceed with signing in.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to complete the Google sign-in process.
+INFO     [Agent]   ▶️   click: index: 3559
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 11:
+INFO     [Agent]   👍 Eval: Successfully filled in the password field and clicked 'Next'. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after filling in the email address 'sandeep.smr'. The password field has been filled, and I am ready to proceed with signing in.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to complete the Google sign-in process.
+INFO     [Agent]   ▶️   click: index: 3559
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 12:
+ERROR    [Agent] ❌ Result failed 1/4 times:
+ LLM call timed out after 60 seconds. Keep your thinking and output short.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 13:
+ERROR    [Agent] ❌ Result failed 2/4 times:
+ Rate limit reached for gpt-4o-mini in organization org-voWzeHDQvFrCHzic88jQ7xkG on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 14:
+WARNING  [app.utils.timeout] ⏱️ Operation timed out after 300 seconds
+ERROR    [app.routes.api] ⏱️  Automation timed out: Operation timed out after 300 seconds
+WARNING  [app.services.engine_orchestrator] Cleaning up after timeout for browser_use (headless=False)
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 14:36:59] "POST /api/execute HTTP/1.1" 408 -
+ERROR    [Agent] ❌ Result failed 3/4 times:
+ Rate limit reached for gpt-4o-mini in organization org-voWzeHDQvFrCHzic88jQ7xkG on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 15:
+ERROR    [Agent] ❌ Result failed 4/4 times:
+ LLM call timed out after 60 seconds. Keep your thinking and output short.
+ERROR    [Agent] ❌ Stopping due to 3 consecutive failures
+INFO     [app.engines.browser_use.engine_optimized] ⏹️  Agent execution completed
+INFO     [app.engines.browser_use.engine_optimized] 📊 Processing execution history...
+INFO     [app.engines.browser_use.engine_optimized]   Step 1: thinking='The browser is currently on an empty page (about:blank), indicating that LinkedIn has not ...
+INFO     [app.engines.browser_use.engine_optimized]   Step 2: thinking="I have successfully navigated to LinkedIn's homepage. The next step is to click the 'Join ...
+INFO     [app.engines.browser_use.engine_optimized]   Step 3: thinking="I have successfully navigated to LinkedIn's sign-up page after clicking 'Join now'. Howeve...
+INFO     [app.engines.browser_use.engine_optimized]   Step 4: thinking="I have successfully navigated to LinkedIn's sign-up page and clicked 'Join now'. The page ...
+INFO     [app.engines.browser_use.engine_optimized]   Step 5: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and then clicked 'Continue ...
+INFO     [app.engines.browser_use.engine_optimized]   Step 6: thinking="I have successfully navigated to the Google sign-in page after clicking 'Continue with Goo...
+INFO     [app.engines.browser_use.engine_optimized]   Step 7: thinking="I have successfully navigated to the Google sign-in page and filled in the email field wit...
+INFO     [app.engines.browser_use.engine_optimized]   Step 8: thinking="I have successfully navigated through the LinkedIn sign-up process and am currently on the...
+INFO     [app.engines.browser_use.engine_optimized]   Step 9: thinking="I have successfully navigated through the LinkedIn sign-up process and am currently on the...
+INFO     [app.engines.browser_use.engine_optimized]   Step 10: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded with Google s...
+INFO     [app.engines.browser_use.engine_optimized]   Step 11: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded to the Google...
+INFO     [app.engines.browser_use.engine_optimized]   Step 12: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded to the Google...
+INFO     [app.engines.browser_use.engine_optimized]   Step 13: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded to the Google...
+INFO     [app.engines.browser_use.engine_optimized]   Step 14: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded to the Google...
+INFO     [app.engines.browser_use.engine_optimized]   Step 15: thinking="I have successfully navigated to LinkedIn, clicked 'Join now', and proceeded to the Google...
+INFO     [app.engines.browser_use.engine_optimized] 🎭 Playwright code generated successfully
+INFO     [app.engines.browser_use.engine_optimized] ✅ Task completed successfully!
+INFO     [app.engines.browser_use.engine_optimized] 📈 Total steps executed: 15
+INFO     [app.engines.browser_use.performance_monitor] ✅ execute_instruction completed in 397.65s
