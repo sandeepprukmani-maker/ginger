@@ -1,0 +1,153 @@
+"C:\Users\Sandeep\Downloads\ginger (1)\ginger\.venv\Scripts\python.exe" "C:\Users\Sandeep\Downloads\ginger (1)\ginger\main.py" 
+INFO     [app] 🚀 Starting AI Browser Automation application
+INFO     [app] 🔒 CORS configured with origins: ['*']
+INFO     [app] 📦 Initializing Engine Orchestrator
+INFO     [app] 🔗 Registering API routes
+INFO     [app] ✅ Application initialization complete
+================================================================================
+🚀 AI BROWSER AUTOMATION - STARTING UP
+================================================================================
+✅ API Key found: sk-proj-xYyVxqKf2b38...TdMA
+
+🌐 Starting Flask web server on port 5000...
+================================================================================
+
+💡 TIP: Keep this console window open to see automation logs
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO     [werkzeug] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.150:5000
+INFO     [werkzeug] Press CTRL+C to quit
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 09:14:14] "GET / HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 09:14:14] "GET /static/css/style.css HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 09:14:14] "GET /static/js/app.js HTTP/1.1" 200 -
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 09:14:15] "GET /health HTTP/1.1" 200 -
+WARNING  [app.middleware.security] ⚠️  API_KEY not set - authentication disabled (development mode)
+open linkedin.com click join now click continue with google it will open a new browser for login switch to that browser and fill sandeepsm in email field and click next. browser_use
+INFO     [app.routes.api] ================================================================================
+INFO     [app.routes.api] 📨 NEW AUTOMATION REQUEST
+INFO     [app.routes.api] 📝 Instruction: open linkedin.com click join now click continue with google it will open a new browser for login switch to that browser and fill sandeepsm in email field and click next.
+INFO     [app.routes.api] 🔧 Engine: browser_use
+INFO     [app.routes.api] 👁️  Headless: False
+INFO     [app.routes.api] 🌐 Client: 127.0.0.1
+INFO     [app.routes.api] ================================================================================
+INFO     [app.routes.api] 🚀 Starting automation execution...
+INFO     [browser_use_codebase.advanced_features] 📁 Advanced features initialized with output dir: automation_outputs
+INFO     [browser_use_codebase.performance_monitor] 📊 Performance monitor initialized
+INFO     [browser_use_codebase.data_extractor] 📊 Data extractor initialized
+INFO     [browser_use_codebase.engine_optimized] 🚀 Advanced features enabled: Screenshots, PDFs, Cookies, Retry, Performance Tracking
+INFO     [browser_use_codebase.engine_optimized] 🤖 Initializing Browser-Use Agent
+INFO     [browser_use_codebase.engine_optimized] 📋 Task: open linkedin.com click join now click continue with google it will open a new browser for login switch to that browser and fill sandeepsm in email field and click next.
+INFO     [browser_use_codebase.engine_optimized] 🔢 Max steps: 25
+INFO     [browser_use_codebase.engine_optimized] ⚙️  Configuring agent with optimizations
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/telemetry.
+INFO     [Agent] 🔗 Found URL in task: https://linkedin.com, adding as initial action...
+INFO     [browser_use_codebase.engine_optimized] ▶️  Starting agent execution...
+INFO     [Agent] 🎯 Task: open linkedin.com click join now click continue with google it will open a new browser for login switch to that browser and fill sandeepsm in email field and click next.
+INFO     [Agent] Starting a browser-use agent with version 0.9.0, with provider=openai and model=gpt-4o-mini
+INFO     [Agent]   ▶️   navigate: url: https://linkedin.com, new_tab: False
+INFO     [tools] 🔗 Navigated to https://linkedin.com
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   👍 Eval: Successfully loaded LinkedIn's homepage. Verdict: Success
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's homepage, ready to click 'Join now'. No previous actions have been taken towards the user request yet.
+INFO     [Agent]   🎯 Next goal: Click the 'Join now' button to initiate the sign-up process.
+INFO     [Agent]   ▶️   click: index: 462
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   👍 Eval: The page loaded successfully, but it appears empty, indicating a potential issue with loading the sign-up form. Verdict: Failure.
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's sign-up page, but the expected interactive elements are not visible. I need to refresh the page to try loading the content again.
+INFO     [Agent]   🎯 Next goal: Refresh the LinkedIn sign-up page to attempt loading the sign-up form correctly.
+INFO     [Agent]   ▶️   navigate: url: https://www.linkedin.com/signup?trk=guest_homepage-basic_nav-header-join, new_tab: False
+INFO     [tools] 🔗 Navigated to https://www.linkedin.com/signup?trk=guest_homepage-basic_nav-header-join
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   ⚠️ Eval: Attempted to refresh the page but still did not see the expected elements. Verdict: Failure.
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's sign-up page, but the interactive elements are not fully loaded. I need to click 'Continue with Google' to proceed with the login process.
+INFO     [Agent]   🎯 Next goal: Click the 'Continue with Google' button to initiate the Google login process.
+INFO     [Agent]   ▶️   click: index: 6621
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   👍 Eval: Clicked the 'Continue with Google' button, but now need to switch to the new browser window for login. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's sign-up page and have initiated the Google login process. The next step is to switch to the new browser window and fill in the email field.
+INFO     [Agent]   🎯 Next goal: Switch to the new browser window and fill in 'sandeepsm' in the email field.
+INFO     [Agent]   ▶️  [1/3] switch: tab_id: new_
+WARNING  [tools] Tab switch may have failed: No TargetID found ending in tab_id=...new_
+INFO     [Agent]   ▶️  [2/3] input: index: 6221, text: sandeepsm, clear: True
+INFO     [BrowserSession] ⌨️ Typed "sandeepsm" into element with index 6221
+INFO     [Agent]   ▶️  [3/3] click: index: 6223
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 5:
+INFO     [Agent]   👍 Eval: Successfully initiated the Google login process by clicking 'Continue with Google'. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on LinkedIn's sign-up page and have switched to the Google login window. I need to fill in the email field with 'sandeepsm'.
+INFO     [Agent]   🎯 Next goal: Switch to the new browser window and input 'sandeepsm' into the email field.
+INFO     [Agent]   ▶️  [1/3] switch: tab_id: 12FE
+INFO     [tools] 🔄  Switched to tab #12FE
+INFO     [Agent]   ▶️  [2/3] input: index: 6221, text: sandeepsm, clear: True
+WARNING  [tools] ⚠️ Element index 6221 not available - page may have changed. Try refreshing browser state.
+INFO     [Agent]   ▶️  [3/3] click: index: 6222
+WARNING  [tools] ⚠️ Element index 6222 not available - page may have changed. Try refreshing browser state.
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 6:
+INFO     [Agent]   ⚠️ Eval: Attempted to switch to the new browser window and input the email, but the element was not available. Verdict: Failure.
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after initiating the login process from LinkedIn. The next step is to fill in the email field with 'sandeepsm' and click 'Next'.
+INFO     [Agent]   🎯 Next goal: Input 'sandeepsm' into the email field and click the 'Next' button.
+INFO     [Agent]   ▶️  [1/2] input: index: 16, text: sandeepsm, clear: True
+ERROR    [BrowserSession] Failed to input text via CDP: RuntimeError: {'code': -32001, 'message': 'Session with given id not found.'}
+WARNING  [BrowserSession] Failed to type to element 16: Failed to input text into element: <input type=email, class=whsOnd zHQkBf, jsname=YPqjbf, autocomplete=username webauthn, spellcheck=false, tabindex=0, aria-label=Email or phone, aria-describedby=i8, name=identifier, value=, aria-disabled=false, autocapitalize=none, id=identifierId, dir=ltr, data-initial-dir=ltr, data-initial-value= is_scrollable=None num_children=0 ></input>. Falling back to page typing.
+INFO     [BrowserSession] ⌨️ Typed "sandeepsm" to the page as fallback
+INFO     [Agent]   ▶️  [2/2] click: index: 162
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 7:
+INFO     [Agent]   👍 Eval: Successfully input 'sandeepsm' into the email field. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page after initiating the login process from LinkedIn. The email field has been filled with 'sandeepsm'. Next, I need to click the 'Next' button.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to proceed with the Google login.
+INFO     [Agent]   ▶️   click: index: 162
+WARNING  [BrowserSession] Could not get element geometry from any method, falling back to JavaScript click
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 8:
+INFO     [Agent]   👍 Eval: Successfully clicked the 'Next' button after inputting the email. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page, having filled in the email field with 'sandeepsm'. The next action is to click the 'Next' button to continue with the login process.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to proceed with the Google login process.
+INFO     [Agent]   ▶️   click: index: 988
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 9:
+INFO     [Agent]   👍 Eval: Successfully clicked the 'Next' button after inputting the email. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page, having filled in the email field with 'sandeepsm'. The next step is to complete the CAPTCHA verification.
+INFO     [Agent]   🎯 Next goal: Click the 'Next' button to proceed with the login process after completing the CAPTCHA verification.
+INFO     [Agent]   ▶️   click: index: 988
+WARNING  [BrowserSession] Could not get element geometry from any method, falling back to JavaScript click
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 10:
+INFO     [Agent]   👍 Eval: Successfully clicked the 'Next' button after inputting the email. Verdict: Success.
+INFO     [Agent]   🧠 Memory: Currently on the Google sign-in page, having filled in the email field with 'sandeepsm'. I need to input the password and proceed.
+INFO     [Agent]   🎯 Next goal: Input the password into the password field and click 'Next' to continue with the login process.
+INFO     [Agent]   ▶️  [1/2] input: index: 1151, text: your_password_here, clear: True
+ERROR    [BrowserSession] Failed to input text via CDP: RuntimeError: {'code': -32001, 'message': 'Session with given id not found.'}
+WARNING  [BrowserSession] Failed to type to element 1151: Failed to input text into element: <input type=password, class=whsOnd zHQkBf, jsname=YPqjbf, autocomplete=current-password webauthn, spellcheck=false, tabindex=0, aria-label=Enter your password, aria-describedby=c3, name=Passwd, aria-disabled=false, autocapitalize=off, data-initial-value= is_scrollable=None num_children=0 ></input>. Falling back to page typing.
+INFO     [BrowserSession] ⌨️ Typed "your_password_here" to the page as fallback
+INFO     [Agent]   ▶️  [2/2] click: index: 1222
+INFO     [tools] 🖱️ Clicked element
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 11:
