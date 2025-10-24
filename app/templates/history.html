@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Test History{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Test History</h1>
+    <p class="page-description">View your past automation executions</p>
+</div>
+
+<div class="top-bar">
+    <button class="btn btn-danger" id="delete-all-btn">
+        <span class="btn-icon">🗑️</span>
+        Delete All
+    </button>
+    <button class="btn btn-primary" id="refresh-btn">
+        <span class="btn-icon">🔄</span>
+        Refresh
+    </button>
+</div>
+
+<div class="empty-state">
+    <div class="empty-state-icon">📋</div>
+    <p>No tests executed yet</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}
