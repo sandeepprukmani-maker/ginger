@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="source-selection mb-4">
+        <button class="source-btn active" data-source="jira">
+            <i class="bi bi-jira"></i> Jira EPIC
+        </button>
+        <button class="source-btn" data-source="manual">
+            <i class="bi bi-pencil-square"></i> Manual Entry
+        </button>
+    </div>
+
+    <div class="input-section">
+        <div class="input-card" id="jiraInput">
+            <label class="input-label">EPIC Key</label>
+            <input type="text" class="form-input" id="epicKey" placeholder="e.g., PROJ-123">
+            
+            <label class="input-label mt-3">Confluence Page IDs (Optional)</label>
+            <input type="text" class="form-input" id="confluencePageIds" placeholder="e.g., 123456, 789012 (comma-separated)">
+        </div>
+
+        <div class="input-card" id="manualInput" style="display: none;">
+            <label class="input-label">EPIC Description</label>
+            <textarea class="form-textarea" id="manualText" rows="10" placeholder="Describe your automation task in natural language...
+
+Example: Check my Gmail inbox for unread emails and download them
+Example: Navigate to Amazon and search for wireless headphones
+Example: Go to LinkedIn and extract all job postings for Software Engineer"></textarea>
+        </div>
+
+        <button class="btn-primary-large" id="analyzeBtn" onclick="analyzeEpic()">
+            <i class="bi bi-play-circle-fill"></i> Analyze EPIC
+        </button>
+    </div>
+
+    <div id="epicSummary" class="summary-section" style="display: none;">
+        <div class="section-header">
+            <h3 class="section-title">EPIC Summary</h3>
+        </div>
+        <div id="epicSummaryContent" class="summary-content"></div>
+        
+        <div class="context-section">
+            <label class="input-label">Additional Context (Optional)</label>
+            <textarea class="form-textarea" id="additionalContext" rows="3" placeholder="Add any clarifications or additional requirements..."></textarea>
+        </div>
+        
+        <button class="btn-primary-large mt-3" onclick="generateStories()">
+            <i class="bi bi-stars"></i> Generate User Stories
+        </button>
+    </div>
+
+    <div id="conversationSection" class="conversation-section" style="display: none;">
+        <div class="section-header">
+            <h3 class="section-title">Ask Questions</h3>
+        </div>
+        <div id="conversationHistory" class="conversation-history"></div>
+        <div class="input-group-modern">
+            <input type="text" class="form-input" id="questionInput" placeholder="Ask a question about the EPIC...">
+            <button class="btn-icon" onclick="askQuestion()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="storiesSection" class="stories-section" style="display: none;">
+        <div class="section-header">
+            <h3 class="section-title">Generated User Stories</h3>
+            <div class="badge-pill">AI-DRAFT</div>
+        </div>
+        <div id="storiesList"></div>
+        
+        <div class="export-actions">
+            <button class="btn-secondary" onclick="exportStories('json')">
+                <i class="bi bi-download"></i> Export JSON
+            </button>
+            <button class="btn-secondary" onclick="exportStories('text')">
+                <i class="bi bi-file-text"></i> Export Text
+            </button>
+        </div>
+    </div>
+
+    <div id="loadingIndicator" class="loading-overlay" style="display: none;">
+        <div class="spinner-modern">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+        </div>
+        <p class="loading-text">Processing...</p>
+    </div>
+
+    <div id="alertContainer" class="alert-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+document.querySelectorAll('.source-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const source = this.dataset.source;
+        if (source === 'jira') {
+            document.getElementById('jiraInput').style.display = 'block';
+            document.getElementById('manualInput').style.display = 'none';
+        } else {
+            document.getElementById('jiraInput').style.display = 'none';
+            document.getElementById('manualInput').style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}
