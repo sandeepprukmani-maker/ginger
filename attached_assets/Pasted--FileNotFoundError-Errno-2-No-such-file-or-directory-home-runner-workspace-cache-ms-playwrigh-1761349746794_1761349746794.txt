@@ -1,0 +1,31 @@
+
+FileNotFoundError [Errno 2] No such file or directory: '/home/runner/workspace/.cache/ms-playwright/chromium-1187/chrome-linux/chrome'
+ERROR    [bubus.helpers] setup_new_browser_context failed after 6 attempts over 0.6s. Semaphore wait: 0.0s. Final error: FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/workspace/.cache/ms-playwright/chromium-1187/chrome-linux/chrome'
+ERROR    [browser_use.Agent🅰 dacc on 🆂 3750 🅟 88] ❌ Result failed 3/3 times:
+ [Errno 2] No such file or directory: '/home/runner/workspace/.cache/ms-playwright/chromium-1187/chrome-linux/chrome'
+INFO     [browser_use.Agent🅰 dacc on 🆂 3750 🅟 88] 📍 Step 3: Ran 1 actions in 1.12s: ❌ 1
+ERROR    [browser_use.Agent🅰 dacc on 🆂 3750 🅟 88] ❌ Stopping due to 3 consecutive failures
+INFO     [app.engines.browser_use.engine_optimized] ⏹️  Agent execution completed
+INFO     [app.engines.browser_use.engine_optimized] 📊 Processing execution history...
+INFO     [app.engines.browser_use.engine_optimized] 🎭 Playwright code generated successfully
+ERROR    [app.engines.browser_use.engine_optimized] ❌ Task failed - no steps were executed successfully
+INFO     [app.engines.browser_use.performance_monitor] ❌ execute_instruction completed in 4.41s
+ERROR    [app.routes.api] 💥 Exception in threaded execution: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+Traceback (most recent call last):
+  File "/home/runner/workspace/app/routes/api.py", line 266, in execute_in_thread
+    with current_app.app_context():
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/werkzeug/local.py", line 519, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
