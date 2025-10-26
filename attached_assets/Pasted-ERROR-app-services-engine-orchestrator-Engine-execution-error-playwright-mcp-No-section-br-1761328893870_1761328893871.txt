@@ -1,0 +1,31 @@
+ERROR    [app.services.engine_orchestrator] Engine execution error (playwright_mcp): No section: 'browser'
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\services\engine_orchestrator.py", line 84, in execute_instruction
+    client, agent = self.get_playwright_engine(headless)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\services\engine_orchestrator.py", line 36, in get_playwright_engine
+    mcp_client, browser_agent = playwright_mcp_codebase.create_engine(headless=headless)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\engines\playwright_mcp\__init__.py", line 19, in create_engine
+    mcp_client = MCPStdioClient(headless=headless)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\engines\playwright_mcp\client\stdio_client.py", line 32, in __init__
+    browser = config.get('browser', 'browser')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\configparser.py", line 797, in get
+    d = self._unify_values(section, vars)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\configparser.py", line 1170, in _unify_values
+    raise NoSectionError(section) from None
+configparser.NoSectionError: No section: 'browser'
+Exception ignored in: <function MCPStdioClient.__del__ at 0x000002BFF39D3560>
+Traceback (most recent call last):
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\engines\playwright_mcp\client\stdio_client.py", line 261, in __del__
+    self.close()
+  File "C:\Users\Sandeep\Downloads\ginger (1) 2\ginger\app\engines\playwright_mcp\client\stdio_client.py", line 249, in close
+    if self.process:
+       ^^^^^^^^^^^^
+AttributeError: 'MCPStdioClient' object has no attribute 'process'
+ERROR    [app.routes.api] ❌ Automation failed: Execution failed
+INFO     [app.routes.api] ================================================================================
+INFO     [werkzeug] 127.0.0.1 - - [24/Oct/2025 21:37:28] "POST /api/execute HTTP/1.1" 200 -
